@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f1117">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GoodWe">
+    <meta name="description" content="GoodWe - Carregamento de Veículos Elétricos">
+    <title>GoodWe - Carregador</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZFdlIiwic2hvcnRfbmFtZSI6Ikdvb2RXZSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxMTE3IiwidGhlbWVfY29sb3IiOiIjMGYxMTE3IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyNlNTM5MzUnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIGZpbGw9J3doaXRlJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+4peRIC8+dGV4dD48L3N2Zz4iLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <style>
+        @import url('https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700');
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0f1117;
+            --bg-card: #1a1a1a;
+            --bg-input: #181b22;
+            --border: #343843;
+            --text: #EDEDEC;
+            --text-secondary: #a0a0a0;
+            --text-muted: #8a8f98;
+            --primary: #e53935;
+            --primary-hover: #c62828;
+            --primary-glow: rgba(229, 57, 53, 0.3);
+            --font: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo svg {
+            width: 22px;
+            height: 22px;
+            color: white;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        /* Charger Screen */
+        .charger-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .charger-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .charger-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .charger-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .charger-icon svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .charger-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .charger-id {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(229, 57, 53, 0.1);
+            color: var(--primary);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .charger-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .detail-item {
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .detail-value.highlight {
+            color: var(--primary);
+        }
+
+        /* NFC Tip */
+        .nfc-tip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(229, 57, 53, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 24px;
+        }
+
+        .nfc-tip svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .nfc-tip span {
+            font-size: 13px;
+            color: var(--primary);
+            line-height: 1.4;
+        }
+
+        /* Button */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Charging Screen */
+        .charging-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 32px;
+        }
+
+        .charging-icon-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .charging-icon-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+        }
+
+        .charging-icon-ring::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: var(--primary);
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .charging-icon-bg {
+            position: absolute;
+            inset: 12px;
+            background: rgba(229, 57, 53, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .charging-icon-bg svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+            animation: lightning-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes lightning-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        .progress-section {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .progress-percent {
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+
+        .progress-percent span {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .charging-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            max-width: 320px;
+            padding: 14px;
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(229, 57, 53, 0.05);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+        /* Done Screen */
+        .done-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .done-icon svg {
+            width: 40px;
+            height: 40px;
+            color: #10b981;
+        }
+
+        .done-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .done-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .receipt-card {
+            width: 100%;
+            max-width: 320px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .receipt-row:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .receipt-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .receipt-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .receipt-total .receipt-label {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .receipt-total .receipt-value {
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 360px) {
+            .screen {
+                padding: 20px;
+            }
+
+            .progress-percent {
+                font-size: 40px;
+            }
+
+            .charging-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Screen 1: Charger Info -->
+    <div id="screen-charger" class="screen active">
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            </div>
+            <span class="brand">GoodWe</span>
+        </div>
+
+        <div class="charger-card">
+            <div class="charger-header">
+                <div class="charger-title">
+                    <div class="charger-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="charger-name">Carregador</div>
+                        <div class="charger-id">GX-001</div>
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    Disponível
+                </div>
+            </div>
+
+            <div class="charger-details">
+                <div class="detail-item">
+                    <div class="detail-label">Tipo</div>
+                    <div class="detail-value">AC 22kW</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Conector</div>
+                    <div class="detail-value">Type 2</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Preço</div>
+                    <div class="detail-value highlight">R$ 1,29/kWh</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Tarifa</div>
+                    <div class="detail-value">Horário Pico</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nfc-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>Aproxime seu celular da TAG NFC para conectar ao carregador.</span>
+        </div>
+
+        <button class="btn-primary" onclick="startCharging()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            Iniciar Carregamento
+        </button>
+    </div>
+
+    <!-- Screen 2: Charging -->
+    <div id="screen-charging" class="screen">
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            </div>
+            <span class="brand">GoodWe</span>
+        </div>
+
+        <div class="charging-content">
+            <div class="charging-icon-wrapper">
+                <div class="charging-icon-ring"></div>
+                <div class="charging-icon-bg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-percent"><span id="percent">0</span><span>%</span></div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="charging-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Tempo</div>
+                    <div class="stat-value" id="time">00:00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Energia</div>
+                    <div class="stat-value" id="energy">0.0 kWh</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Custo</div>
+                    <div class="stat-value" id="cost">R$ 0,00</div>
+                </div>
+            </div>
+
+            <button class="btn-secondary" onclick="stopCharging()">Liberar Carga</button>
+        </div>
+    </div>
+
+    <!-- Screen 3: Done -->
+    <div id="screen-done" class="screen">
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            </div>
+            <span class="brand">GoodWe</span>
+        </div>
+
+        <div class="charging-content">
+            <div class="done-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <div class="done-title">Carga Finalizada</div>
+            <div class="done-subtitle">Sua sessão foi encerrada com sucesso</div>
+
+            <div class="receipt-card">
+                <div class="receipt-row">
+                    <span class="receipt-label">Carregador</span>
+                    <span class="receipt-value">GX-001</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Duração</span>
+                    <span class="receipt-value" id="final-time">00:00</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Energia</span>
+                    <span class="receipt-value" id="final-energy">0.0 kWh</span>
+                </div>
+                <div class="receipt-row receipt-total">
+                    <span class="receipt-label">Total</span>
+                    <span class="receipt-value" id="final-cost">R$ 0,00</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="resetAll()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                </svg>
+                Nova Carga
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let chargingInterval = null;
+        let seconds = 0;
+        let percent = 0;
+        const pricePerKwh = 1.29;
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function startCharging() {
+            showScreen('screen-charging');
+            seconds = 0;
+            percent = 0;
+            updateDisplay();
+            chargingInterval = setInterval(() => {
+                seconds++;
+                percent = Math.min(100, percent + 0.5);
+                updateDisplay();
+                if (percent >= 100) {
+                    stopCharging();
+                }
+            }, 500);
+        }
+
+        function stopCharging() {
+            clearInterval(chargingInterval);
+            chargingInterval = null;
+            document.getElementById('final-time').textContent = formatTime(seconds);
+            document.getElementById('final-energy').textContent = calcEnergy();
+            document.getElementById('final-cost').textContent = calcCost();
+            showScreen('screen-done');
+        }
+
+        function resetAll() {
+            seconds = 0;
+            percent = 0;
+            updateDisplay();
+            showScreen('screen-charger');
+        }
+
+        function updateDisplay() {
+            document.getElementById('percent').textContent = Math.floor(percent);
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('time').textContent = formatTime(seconds);
+            document.getElementById('energy').textContent = calcEnergy();
+            document.getElementById('cost').textContent = calcCost();
+        }
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        }
+
+        function calcEnergy() {
+            const kwh = (seconds * 0.005).toFixed(1);
+            return kwh + ' kWh';
+        }
+
+        function calcCost() {
+            const cost = (seconds * 0.005 * pricePerKwh).toFixed(2);
+            return 'R$ ' + cost.replace('.', ',');
+        }
+    </script>
+</body>
+</html>
