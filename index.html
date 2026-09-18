@@ -128,6 +128,10 @@
             gap: 10px;
             color: var(--text);
             font-size: 13px;
+            max-width: 90%;
+            flex-wrap: wrap;
+            justify-content: center;
+            text-align: center;
         }
 
         .map-loading.active {
@@ -961,84 +965,138 @@
             const loadingEl = document.getElementById('map-loading');
             const countEl = document.getElementById('map-count');
             loadingEl.classList.add('active');
+            loadingEl.innerHTML = '<div class="spinner"></div> Buscando postos elétricos...';
             countEl.classList.remove('active');
 
-            const query = `
-                [out:json][timeout:15];
-                (
-                    node["amenity"="charging_station"](around:10000,${lat},${lng});
-                    way["amenity"="charging_station"](around:10000,${lat},${lng});
-                );
-                out center;
-            `;
-
-            fetch('https://overpass-api.de/api/interpreter', {
-                method: 'POST',
-                body: 'data=' + encodeURIComponent(query)
-            })
-            .then(res => res.json())
-            .then(data => {
-                loadingEl.classList.remove('active');
-
-                const elements = data.elements || [];
-
-                elements.forEach(el => {
-                    const elLat = el.lat || (el.center && el.center.lat);
-                    const elLng = el.lon || (el.center && el.center.lon);
-                    if (!elLat || !elLng) return;
-                    el._lat = elLat;
-                    el._lng = elLng;
-                    el._dist = calculateDistance(lat, lng, elLat, elLng);
-                });
-
-                elements.sort((a, b) => a._dist - b._dist);
-
-                elements.forEach(el => {
-                    const tags = el.tags || {};
-                    const name = tags.name || 'Posto de Recarga';
-                    const power = tags.output_power ? tags.output_power + ' kW' : (tags.charging ? tags.charging : 'N/D');
-                    const operator = tags.operator || '';
-                    const dist = el._dist;
-
-                    const icon = L.divIcon({
-                        className: 'custom-marker',
-                        html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>`,
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16],
-                        popupAnchor: [0, -18]
-                    });
-
-                    const marker = L.marker([el._lat, el._lng], { icon }).addTo(chargersLayer);
-
-                    const popupContent = `
-                        <div class="charger-popup">
-                            <h3>${name}</h3>
-                            <div>
-                                <span class="popup-type">${power}</span>
-                            </div>
-                            ${operator ? `<p><strong>Operador:</strong> ${operator}</p>` : ''}
-                            <p><strong>Distância:</strong> ${dist < 1 ? (dist * 1000).toFixed(0) + ' m' : dist.toFixed(1) + ' km'}</p>
-                            <button class="popup-btn" onclick="startRoute(${el._lat}, ${el._lng}, '${name.replace(/'/g, "")}')">
-                                Ver Rota
-                            </button>
-                        </div>
+            fetchOverpass(buildQuery('charging_station', lat, lng, 12000))
+                .then(elements => {
+                    if (elements.length > 0) {
+                        renderStations(elements, lat, lng, 'charger');
+                    } else {
+                        // Fallback: nenhum posto elétrico encontrado, busca posto de combustível
+                        loadingEl.innerHTML = '<div class="spinner"></div> Nenhum posto elétrico encontrado. Buscando postos de combustível...';
+                        return fetchOverpass(buildQuery('fuel', lat, lng, 12000)).then(fuelElements => {
+                            renderStations(fuelElements, lat, lng, 'fuel');
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('Erro ao buscar postos:', err);
+                    loadingEl.innerHTML = `
+                        <span>Não foi possível carregar os postos.</span>
+                        <button class="btn-cancel-route" style="width:auto;padding:8px 14px;margin-left:8px;" onclick="loadNearbyChargers(${lat},${lng})">Tentar novamente</button>
                     `;
+                })
+                .finally(() => {
+                    if (!loadingEl.innerHTML.includes('Tentar novamente')) {
+                        loadingEl.classList.remove('active');
+                    }
+                });
+        }
 
-                    marker.bindPopup(popupContent, { maxWidth: 260 });
-                    chargerMarkers.push({ marker, el });
+        function buildQuery(amenity, lat, lng, radius) {
+            return `[out:json][timeout:20];node["amenity"="${amenity}"](around:${radius},${lat},${lng});out;`;
+        }
+
+        // Tenta múltiplos espelhos do Overpass API (sem necessidade de chave/API key)
+        const OVERPASS_MIRRORS = [
+            'https://overpass.kumi.systems/api/interpreter',
+            'https://overpass-api.de/api/interpreter',
+            'https://overpass.openstreetmap.ru/api/interpreter'
+        ];
+
+        function fetchOverpass(query, mirrorIndex = 0) {
+            if (mirrorIndex >= OVERPASS_MIRRORS.length) {
+                return Promise.reject(new Error('Todos os servidores falharam'));
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+            return fetch(OVERPASS_MIRRORS[mirrorIndex], {
+                method: 'POST',
+                body: 'data=' + encodeURIComponent(query),
+                signal: controller.signal
+            })
+                .then(res => {
+                    clearTimeout(timeoutId);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(data => data.elements || [])
+                .catch(err => {
+                    clearTimeout(timeoutId);
+                    return fetchOverpass(query, mirrorIndex + 1);
+                });
+        }
+
+        function renderStations(elements, lat, lng, type) {
+            const loadingEl = document.getElementById('map-loading');
+            const countEl = document.getElementById('map-count');
+            loadingEl.classList.remove('active');
+
+            elements.forEach(el => {
+                el._dist = calculateDistance(lat, lng, el.lat, el.lon);
+            });
+            elements.sort((a, b) => a._dist - b._dist);
+
+            const isFuel = type === 'fuel';
+            const markerColor = isFuel ? '#3b82f6' : '#e53935';
+            const iconSvg = isFuel
+                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="22" x2="15" y2="22"></line>
+                        <line x1="4" y1="9" x2="14" y2="9"></line>
+                        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+                        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+                   </svg>`
+                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                   </svg>`;
+
+            elements.forEach(el => {
+                const tags = el.tags || {};
+                const name = tags.name || (isFuel ? 'Posto de Combustível' : 'Posto de Recarga');
+                const operator = tags.brand || tags.operator || '';
+                const dist = el._dist;
+
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background:${markerColor};width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -18]
                 });
 
-                if (elements.length > 0) {
-                    countEl.innerHTML = `<strong>${elements.length}</strong> postos encontrados`;
-                    countEl.classList.add('active');
-                }
-            })
-            .catch(err => {
-                loadingEl.classList.remove('active');
-                console.error('Erro ao buscar carregadores:', err);
+                const marker = L.marker([el.lat, el.lon], { icon }).addTo(chargersLayer);
+
+                const typeLabel = isFuel
+                    ? '<span class="popup-type" style="background:#3b82f6;">Posto de Combustível</span>'
+                    : '<span class="popup-type">Posto de Recarga</span>';
+
+                const popupContent = `
+                    <div class="charger-popup">
+                        <h3>${name}</h3>
+                        <div>${typeLabel}</div>
+                        ${operator ? `<p><strong>Operador:</strong> ${operator}</p>` : ''}
+                        <p><strong>Distância:</strong> ${dist < 1 ? (dist * 1000).toFixed(0) + ' m' : dist.toFixed(1) + ' km'}</p>
+                        <button class="popup-btn" onclick="startRoute(${el.lat}, ${el.lon}, '${name.replace(/'/g, "")}')">
+                            Ver Rota
+                        </button>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent, { maxWidth: 260 });
+                chargerMarkers.push({ marker, el });
             });
+
+            if (elements.length > 0) {
+                const label = isFuel ? 'postos de combustível' : 'postos elétricos';
+                countEl.innerHTML = `<strong>${elements.length}</strong> ${label} encontrados`;
+                countEl.classList.add('active');
+            } else {
+                countEl.innerHTML = 'Nenhum posto encontrado por perto';
+                countEl.classList.add('active');
+            }
         }
 
         function startRoute(destLat, destLng, name) {
