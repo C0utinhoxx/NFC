@@ -808,7 +808,7 @@
 <body>
 
     <!-- Screen 1: Charger Info -->
-    <div id="screen-charger" class="screen active">
+    <div id="screen-charger" class="screen">
         <div class="header">
             <div class="logo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -978,7 +978,7 @@
     </div>
 
     <!-- Screen 4: Map -->
-    <div id="screen-map" class="screen map-screen">
+    <div id="screen-map" class="screen map-screen active">
         <div class="map-header">
             <div class="map-header-left">
                 <button class="btn-back" onclick="closeMap()">
@@ -1060,7 +1060,7 @@
             });
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 19
             }).addTo(map);
 
@@ -1116,19 +1116,26 @@
             loadingEl.classList.add('active');
             countEl.classList.remove('active');
 
-            const radius = 5000;
-            const url = `https://api.openchargemap.io/v3/poi/?output=json&countrycode=BR&latitude=${lat}&longitude=${lng}&distance=${radius}&distanceunit=KM&maxresults=30&compact=true&verbose=false&key=26c6e3ce-e06e-41b6-83e1-79a6564b83ad`;
+            const radius = 10;
+            const url = `https://api.openchargemap.io/v3/poi/?output=json&countrycode=BR&latitude=${lat}&longitude=${lng}&distance=${radius}&distanceunit=KM&maxresults=50&compact=true&verbose=false`;
 
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     loadingEl.classList.remove('active');
-                    let count = 0;
 
-                    data.forEach((poi, i) => {
-                        if (!poi.AddressInfo || !poi.AddressInfo.Latitude || !poi.AddressInfo.Longitude) return;
-                        count++;
+                    const validPois = data.filter(poi =>
+                        poi.AddressInfo && poi.AddressInfo.Latitude && poi.AddressInfo.Longitude
+                    );
 
+                    validPois.forEach(poi => {
+                        const info = poi.AddressInfo;
+                        info._dist = calculateDistance(lat, lng, info.Latitude, info.Longitude);
+                    });
+
+                    validPois.sort((a, b) => a.AddressInfo._dist - b.AddressInfo._dist);
+
+                    validPois.forEach((poi, i) => {
                         const info = poi.AddressInfo;
                         const connectors = (poi.Connections || []).map(c => {
                             const names = {1:'Type 1', 2:'Type 2', 27:'Type 2 (Tesla)', 30:'CCS/SAE Combo 1', 31:'CCS/SAE Combo 2', 32:'CHAdeMO', 33:'Tesla', 10:'GB/T'};
@@ -1137,6 +1144,7 @@
 
                         const power = poi.Connections?.[0]?.PowerKW ? poi.Connections[0].PowerKW + ' kW' : 'N/D';
                         const operator = poi.OperatorInfo?.Title || '';
+                        const dist = info._dist;
 
                         const icon = L.divIcon({
                             className: 'custom-marker',
@@ -1149,8 +1157,6 @@
                         });
 
                         const marker = L.marker([info.Latitude, info.Longitude], { icon }).addTo(chargersLayer);
-
-                        const dist = calculateDistance(lat, lng, info.Latitude, info.Longitude);
 
                         const popupContent = `
                             <div class="charger-popup">
@@ -1172,8 +1178,8 @@
                         chargerMarkers.push({ marker, info });
                     });
 
-                    if (count > 0) {
-                        countEl.innerHTML = `<strong>${count}</strong> postos encontrados`;
+                    if (validPois.length > 0) {
+                        countEl.innerHTML = `<strong>${validPois.length}</strong> postos encontrados`;
                         countEl.classList.add('active');
                     }
                 })
@@ -1292,6 +1298,11 @@
         function calcCost() {
             return 'R$ ' + (seconds * 0.005 * pricePerKwh).toFixed(2).replace('.', ',');
         }
+
+        // Auto-open map on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+        });
     </script>
 </body>
 </html>
