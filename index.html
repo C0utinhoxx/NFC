@@ -486,6 +486,260 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        /* Map Screen */
+        .map-screen {
+            padding: 0 !important;
+            flex-direction: column !important;
+        }
+
+        .map-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            position: relative;
+        }
+
+        .map-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-back svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .map-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-locate {
+            padding: 8px 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-locate:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-locate svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        #map {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+            z-index: 1;
+        }
+
+        .charger-popup {
+            font-family: var(--font);
+            min-width: 200px;
+        }
+
+        .charger-popup h3 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .charger-popup p {
+            margin: 0 0 2px 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .charger-popup .popup-type {
+            display: inline-block;
+            background: #e53935;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin: 6px 0;
+        }
+
+        .charger-popup .popup-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .charger-popup .popup-status.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .charger-popup .popup-status.busy {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .charger-popup .popup-status.offline {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+        }
+
+        .charger-popup .popup-btn {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            font-family: var(--font);
+        }
+
+        .charger-popup .popup-btn:hover {
+            background: #c62828;
+        }
+
+        .map-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            padding: 16px 20px;
+            z-index: 1000;
+        }
+
+        .map-bottom-bar p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .map-bottom-bar .route-info {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .leaflet-control-zoom a {
+            background: var(--bg-card) !important;
+            color: var(--text) !important;
+            border-color: var(--border) !important;
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: var(--bg-input) !important;
+        }
+
+        .custom-marker {
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-marker svg {
+            width: 16px;
+            height: 16px;
+            color: white;
+        }
+
+        .user-marker {
+            background: #3b82f6;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px !important;
+        }
+
+        .leaflet-popup-tip {
+            background: white !important;
+        }
+
+        .route-control {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .route-control.active {
+            display: block;
+        }
+
+        .btn-cancel-route {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel-route:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -540,11 +794,27 @@
             </div>
         </div>
 
-        <button class="btn-primary" onclick="startCharging()">
+        <div class="nfc-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>Aproxime seu celular da TAG NFC para conectar ao carregador.</span>
+        </div>
+
+        <button class="btn-primary" onclick="startCharging()" style="margin-bottom: 12px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
             Iniciar Carregamento
+        </button>
+
+        <button class="btn-primary" onclick="openMap()" style="background: var(--bg-card); border: 1px solid var(--border);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            Ver Mapa de Carregadores
         </button>
     </div>
 
@@ -644,17 +914,317 @@
         </div>
     </div>
 
+    <!-- Screen 4: Map -->
+    <div id="screen-map" class="screen map-screen">
+        <div class="map-header">
+            <div class="map-header-left">
+                <button class="btn-back" onclick="closeMap()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <span class="map-title">Carregadores Próximos</span>
+            </div>
+            <button class="btn-locate" onclick="locateUser()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="22" y1="12" x2="18" y2="12"></line>
+                    <line x1="6" y1="12" x2="2" y2="12"></line>
+                    <line x1="12" y1="6" x2="12" y2="2"></line>
+                    <line x1="12" y1="22" x2="12" y2="18"></line>
+                </svg>
+                Minha Localização
+            </button>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="route-control" id="route-control">
+            <button class="btn-cancel-route" onclick="cancelRoute()">Cancelar Rota</button>
+        </div>
+    </div>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         let chargingInterval = null;
         let seconds = 0;
         let percent = 0;
         const pricePerKwh = 1.29;
 
+        // === Map Variables ===
+        let map = null;
+        let userMarker = null;
+        let chargerMarkers = [];
+        let routeLine = null;
+        let userPosition = null;
+
+        // Carregadores de exemplo (substitua por dados reais da API)
+        const chargers = [
+            {
+                id: 'GX-001',
+                name: 'Carregador GoodWe - Shopping Center',
+                lat: -23.5505,
+                lng: -46.6333,
+                type: 'AC 22kW',
+                connector: 'Type 2',
+                price: 'R$ 1,29/kWh',
+                status: 'available',
+                statusText: 'Disponível'
+            },
+            {
+                id: 'GX-002',
+                name: 'Carregador GoodWe - Praça Central',
+                lat: -23.5480,
+                lng: -46.6380,
+                type: 'DC 60kW',
+                connector: 'CCS2',
+                price: 'R$ 1,59/kWh',
+                status: 'available',
+                statusText: 'Disponível'
+            },
+            {
+                id: 'GX-003',
+                name: 'Carregador GoodWe - Estacionamento Sul',
+                lat: -23.5530,
+                lng: -46.6290,
+                type: 'AC 11kW',
+                connector: 'Type 2',
+                price: 'R$ 0,99/kWh',
+                status: 'busy',
+                statusText: 'Ocupado'
+            },
+            {
+                id: 'GX-004',
+                name: 'Carregador GoodWe - Parque Municipal',
+                lat: -23.5460,
+                lng: -46.6350,
+                type: 'DC 120kW',
+                connector: 'CCS2/CHAdeMO',
+                price: 'R$ 1,89/kWh',
+                status: 'available',
+                statusText: 'Disponível'
+            },
+            {
+                id: 'GX-005',
+                name: 'Carregador GoodWe - Rodoviária',
+                lat: -23.5550,
+                lng: -46.6410,
+                type: 'AC 22kW',
+                connector: 'Type 2',
+                price: 'R$ 1,29/kWh',
+                status: 'offline',
+                statusText: 'Offline'
+            }
+        ];
+
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
+        // === Map Functions ===
+        function openMap() {
+            showScreen('screen-map');
+            if (!map) {
+                initMap();
+            } else {
+                map.invalidateSize();
+            }
+        }
+
+        function closeMap() {
+            showScreen('screen-charger');
+        }
+
+        function initMap() {
+            // Centralizar no Brasil (São Paulo)
+            map = L.map('map', {
+                center: [-23.5505, -46.6333],
+                zoom: 14,
+                zoomControl: true
+            });
+
+            // Tile do OpenStreetMap (estilo escuro)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Adicionar marcadores dos carregadores
+            addChargerMarkers();
+
+            // Tentar obter localização do usuário
+            locateUser();
+        }
+
+        function addChargerMarkers() {
+            chargers.forEach(charger => {
+                const statusColor = charger.status === 'available' ? '#10b981' :
+                                   charger.status === 'busy' ? '#f59e0b' : '#6b7280';
+
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18],
+                    popupAnchor: [0, -20]
+                });
+
+                const marker = L.marker([charger.lat, charger.lng], { icon }).addTo(map);
+
+                const popupContent = `
+                    <div class="charger-popup">
+                        <h3>${charger.name}</h3>
+                        <p>${charger.id}</p>
+                        <div>
+                            <span class="popup-type">${charger.type}</span>
+                            <span class="popup-status ${charger.status}">${charger.statusText}</span>
+                        </div>
+                        <p>${charger.connector} | ${charger.price}</p>
+                        <button class="popup-btn" onclick="startRoute(${charger.lat}, ${charger.lng}, '${charger.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                            </svg>
+                            Ver Rota
+                        </button>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent, {
+                    maxWidth: 250,
+                    className: 'charger-popup-wrapper'
+                });
+
+                chargerMarkers.push({ marker, charger });
+            });
+        }
+
+        function locateUser() {
+            if (!navigator.geolocation) {
+                alert('Geolocalização não suportada pelo navegador.');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userPosition = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    if (userMarker) {
+                        map.removeLayer(userMarker);
+                    }
+
+                    const userIcon = L.divIcon({
+                        className: 'user-marker',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
+
+                    userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon }).addTo(map);
+                    userMarker.bindPopup('Você está aqui');
+
+                    map.setView([userPosition.lat, userPosition.lng], 15);
+                },
+                (error) => {
+                    let msg = 'Não foi possível obter sua localização.';
+                    if (error.code === 1) msg = 'Permissão de localização negada. Ative nas configurações.';
+                    if (error.code === 2) msg = 'Localização indisponível.';
+                    if (error.code === 3) msg = 'Tempo esgotado ao obter localização.';
+                    alert(msg);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        function startRoute(destLat, destLng, chargerId) {
+            if (!userPosition) {
+                alert('Aguarde sua localização ser detectada ou clique em "Minha Localização".');
+                return;
+            }
+
+            // Fechar popups
+            map.closePopup();
+
+            // Calcular distância
+            const distance = calculateDistance(userPosition.lat, userPosition.lng, destLat, destLng);
+            const timeEstimate = Math.ceil(distance * 3); // Estimativa: 3 min por km
+
+            // Desenhar linha da rota
+            if (routeLine) {
+                map.removeLayer(routeLine);
+            }
+
+            const routeCoords = [
+                [userPosition.lat, userPosition.lng],
+                [destLat, destLng]
+            ];
+
+            routeLine = L.polyline(routeCoords, {
+                color: '#e53935',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '10, 10',
+                lineCap: 'round'
+            }).addTo(map);
+
+            // Ajustar zoom para mostrar toda a rota
+            map.fitBounds(routeLine.getBounds(), { padding: [60, 60] });
+
+            // Mostrar barra de info da rota
+            const routeControl = document.getElementById('route-control');
+            routeControl.classList.add('active');
+            routeControl.innerHTML = `
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;">
+                    <p class="route-info" style="margin:0 0 4px 0;color:var(--text);font-weight:600;">Rota para ${chargerId}</p>
+                    <p style="margin:0;font-size:13px;color:var(--text-secondary);">Distância: ${distance.toFixed(1)} km | Tempo est.: ${timeEstimate} min</p>
+                </div>
+                <button class="btn-cancel-route" onclick="cancelRoute()">Cancelar Rota</button>
+            `;
+
+            // Abrir Google Maps com a rota real
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userPosition.lat},${userPosition.lng}&destination=${destLat},${destLng}&travelmode=driving`;
+
+            // Criar marcador no destino
+            L.marker([destLat, destLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18]
+                })
+            }).addTo(map);
+        }
+
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // Raio da Terra em km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function cancelRoute() {
+            if (routeLine) {
+                map.removeLayer(routeLine);
+                routeLine = null;
+            }
+            document.getElementById('route-control').classList.remove('active');
+            document.getElementById('route-control').innerHTML = '';
+        }
+
+        // === Charging Functions ===
         function startCharging() {
             showScreen('screen-charging');
             seconds = 0;
