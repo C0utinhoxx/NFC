@@ -487,10 +487,21 @@
             }
         }
 
-        /* Map Screen */
+        /* Map Screen - Fullscreen Overlay */
         .map-screen {
             padding: 0 !important;
             flex-direction: column !important;
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 9999 !important;
+            height: 100% !important;
+            width: 100% !important;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
 
         .map-header {
