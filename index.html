@@ -99,6 +99,15 @@
             gap: 16px;
         }
 
+        #main-map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
         .map-wrapper {
             flex: 1;
             min-height: 0;
@@ -106,11 +115,8 @@
             border-radius: 14px;
             overflow: hidden;
             border: 1px solid var(--border);
-        }
-
-        #main-map {
-            width: 100%;
-            height: 100%;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .map-loading {
@@ -921,11 +927,13 @@
             map = L.map('main-map', {
                 center: [-23.5505, -46.6333],
                 zoom: 13,
-                zoomControl: true
+                zoomControl: true,
+                preferCanvas: true,
+                renderer: L.canvas({ padding: 0.5 })
             });
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: 'OpenStreetMap',
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
 
