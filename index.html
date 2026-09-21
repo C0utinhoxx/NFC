@@ -184,13 +184,11 @@
         }
 
         .custom-marker {
-            background: var(--primary);
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            display: block;
         }
 
         .custom-marker svg {
@@ -204,6 +202,9 @@
             border: 3px solid white;
             border-radius: 50%;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: inline-block;
+            width: 20px;
+            height: 20px;
         }
 
         .leaflet-popup-content-wrapper {
@@ -784,7 +785,6 @@
                         <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                         <line x1="12" y1="18" x2="12.01" y2="18"></line>
                     </svg>
-                    <span>Aproxime seu celular da TAG NFC para conectar ao carregador.</span>
                 </div>
 
                 <button class="btn-primary" onclick="startCharging()">
@@ -797,7 +797,6 @@
         </div>
     </div>
 
-    <!-- Screen 2: Charging -->
     <div id="screen-charging" class="screen screen-charging">
         <div class="header" style="padding:16px 0;">
             <div class="logo">
@@ -941,6 +940,7 @@
 
                     const userIcon = L.divIcon({
                         className: 'user-marker',
+                        html: '',
                         iconSize: [20, 20],
                         iconAnchor: [10, 10]
                     });
@@ -952,9 +952,25 @@
                     loadNearbyChargers(userPosition.lat, userPosition.lng);
                 },
                 (error) => {
-                    loadNearbyChargers(-23.5505, -46.6333);
+                    console.warn('Geolocalização negada, usando localização padrão:', error);
+                    const defaultLat = -23.5505;
+                    const defaultLng = -46.6333;
+                    userPosition = { lat: defaultLat, lng: defaultLng };
+
+                    const userIcon = L.divIcon({
+                        className: 'user-marker',
+                        html: '',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
+
+                    userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon }).addTo(map);
+                    userMarker.bindPopup('Localização padrão');
+
+                    map.setView([userPosition.lat, userPosition.lng], 14);
+                    loadNearbyChargers(defaultLat, defaultLng);
                 },
-                { enableHighAccuracy: true, timeout: 10000 }
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
         }
 
