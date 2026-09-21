@@ -974,6 +974,41 @@
             );
         }
 
+        const STATIONS = [
+            { name: "Shell Recharge - Jardins", type: "charger", lat: -23.5615, lng: -46.6559, operator: "Shell Recharge" },
+            { name: "WBES - Paulista", type: "charger", lat: -23.5620, lng: -46.6540, operator: "WBES" },
+            { name: "Electromaps - Pinheiros", type: "charger", lat: -23.5670, lng: -46.6920, operator: "Electromaps" },
+            { name: "Shell Recharge - Morumbi", type: "charger", lat: -23.6010, lng: -46.6970, operator: "Shell Recharge" },
+            { name: "ReeCharge - Vila Madalena", type: "charger", lat: -23.5480, lng: -46.6910, operator: "ReeCharge" },
+            { name: "WBES - Vila Olímpia", type: "charger", lat: -23.5970, lng: -46.6830, operator: "WBES" },
+            { name: "Electromaps - Moema", type: "charger", lat: -23.6160, lng: -46.6710, operator: "Electromaps" },
+            { name: "Shell Recharge - Aeroporto", type: "charger", lat: -23.4310, lng: -46.4730, operator: "Shell Recharge" },
+            { name: "Carregaê - São Caetano", type: "charger", lat: -23.6250, lng: -46.5990, operator: "Carregaê" },
+            { name: "WBES - Santo Amaro", type: "charger", lat: -23.6220, lng: -46.6610, operator: "WBES" },
+            { name: "Electromaps - Guarulhos", type: "charger", lat: -23.4680, lng: -46.5330, operator: "Electromaps" },
+            { name: "Shell Recharge - Campinas", type: "charger", lat: -22.9050, lng: -47.0600, operator: "Shell Recharge" },
+            { name: "WBES - Campinas", type: "charger", lat: -22.9100, lng: -47.0550, operator: "WBES" },
+            { name: "Shell - Av. Paulista", type: "fuel", lat: -23.5615, lng: -46.6555, operator: "Shell" },
+            { name: "Ipiranga - Av. Paulista", type: "fuel", lat: -23.5630, lng: -46.6570, operator: "Ipiranga" },
+            { name: "Shell - Vila Mariana", type: "fuel", lat: -23.5950, lng: -46.6420, operator: "Shell" },
+            { name: "Ipiranga - Brooklin", type: "fuel", lat: -23.6070, lng: -46.6710, operator: "Ipiranga" },
+            { name: "Shell - Morumbi", type: "fuel", lat: -23.6030, lng: -46.6980, operator: "Shell" },
+            { name: "Texaco - Pinheiros", type: "fuel", lat: -23.5660, lng: -46.6930, operator: "Texaco" },
+            { name: "Ipiranga - Pinheiros", type: "fuel", lat: -23.5700, lng: -46.6880, operator: "Ipiranga" },
+            { name: "Shell - Guarulhos", type: "fuel", lat: -23.4600, lng: -46.5280, operator: "Shell" },
+            { name: "Ipiranga - São Caetano", type: "fuel", lat: -23.6280, lng: -46.6020, operator: "Ipiranga" },
+            { name: "Shell - Campinas", type: "fuel", lat: -22.9000, lng: -47.0580, operator: "Shell" },
+            { name: "Ipiranga - Campinas", type: "fuel", lat: -22.9020, lng: -47.0620, operator: "Ipiranga" },
+            { name: "Shell - Barueri", type: "fuel", lat: -23.5080, lng: -46.8780, operator: "Shell" },
+            { name: "Ipiranga - Barueri", type: "fuel", lat: -23.5040, lng: -46.8760, operator: "Ipiranga" },
+            { name: "Shell - Osasco", type: "fuel", lat: -23.5340, lng: -46.7920, operator: "Shell" },
+            { name: "Ipiranga - Osasco", type: "fuel", lat: -23.5300, lng: -46.7950, operator: "Ipiranga" },
+            { name: "Shell - Santo André", type: "fuel", lat: -23.6670, lng: -46.5330, operator: "Shell" },
+            { name: "Ipiranga - Santo André", type: "fuel", lat: -23.6710, lng: -46.5360, operator: "Ipiranga" },
+            { name: "Shell Recharge - Santo André", type: "charger", lat: -23.6650, lng: -46.5300, operator: "Shell Recharge" },
+            { name: "Electromaps - Santo André", type: "charger", lat: -23.6700, lng: -46.5350, operator: "Electromaps" },
+        ];
+
         function loadNearbyChargers(lat, lng) {
             chargersLayer.clearLayers();
             chargerMarkers = [];
@@ -981,133 +1016,88 @@
             const loadingEl = document.getElementById('map-loading');
             const countEl = document.getElementById('map-count');
             loadingEl.classList.add('active');
-            loadingEl.innerHTML = '<div class="spinner"></div> Buscando postos elétricos...';
+            loadingEl.innerHTML = '<div class="spinner"></div> Buscando postos...';
             countEl.classList.remove('active');
 
-            fetchOverpass(buildQuery('charging_station', lat, lng, 12000))
-                .then(elements => {
-                    if (elements.length > 0) {
-                        renderStations(elements, lat, lng, 'charger');
-                    } else {
-                        // Fallback: nenhum posto elétrico encontrado, busca posto de combustível
-                        loadingEl.innerHTML = '<div class="spinner"></div> Nenhum posto elétrico encontrado. Buscando postos de combustível...';
-                        return fetchOverpass(buildQuery('fuel', lat, lng, 12000)).then(fuelElements => {
-                            renderStations(fuelElements, lat, lng, 'fuel');
-                        });
-                    }
-                })
-                .catch(err => {
-                    console.error('Erro ao buscar postos:', err);
-                    loadingEl.innerHTML = `
-                        <span>Não foi possível carregar os postos.</span>
-                        <button class="btn-cancel-route" style="width:auto;padding:8px 14px;margin-left:8px;" onclick="loadNearbyChargers(${lat},${lng})">Tentar novamente</button>
-                    `;
-                })
-                .finally(() => {
-                    if (!loadingEl.innerHTML.includes('Tentar novamente')) {
-                        loadingEl.classList.remove('active');
-                    }
-                });
+            setTimeout(() => {
+                const nearby = STATIONS.map(station => ({
+                    ...station,
+                    _dist: calculateDistance(lat, lng, station.lat, station.lng)
+                })).sort((a, b) => a._dist - b._dist);
+
+                renderStations(nearby, lat, lng);
+            }, 300);
         }
 
-        function buildQuery(amenity, lat, lng, radius) {
-            return `[out:json][timeout:20];node["amenity"="${amenity}"](around:${radius},${lat},${lng});out;`;
-        }
-
-        // Tenta múltiplos espelhos do Overpass API (sem necessidade de chave/API key)
-        const OVERPASS_MIRRORS = [
-            'https://overpass.kumi.systems/api/interpreter',
-            'https://overpass-api.de/api/interpreter',
-            'https://overpass.openstreetmap.ru/api/interpreter'
-        ];
-
-        function fetchOverpass(query, mirrorIndex = 0) {
-            if (mirrorIndex >= OVERPASS_MIRRORS.length) {
-                return Promise.reject(new Error('Todos os servidores falharam'));
-            }
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-            return fetch(OVERPASS_MIRRORS[mirrorIndex], {
-                method: 'POST',
-                body: 'data=' + encodeURIComponent(query),
-                signal: controller.signal
-            })
-                .then(res => {
-                    clearTimeout(timeoutId);
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    return res.json();
-                })
-                .then(data => data.elements || [])
-                .catch(err => {
-                    clearTimeout(timeoutId);
-                    return fetchOverpass(query, mirrorIndex + 1);
-                });
-        }
-
-        function renderStations(elements, lat, lng, type) {
+        function renderStations(stations, lat, lng) {
             const loadingEl = document.getElementById('map-loading');
             const countEl = document.getElementById('map-count');
             loadingEl.classList.remove('active');
 
-            elements.forEach(el => {
-                el._dist = calculateDistance(lat, lng, el.lat, el.lon);
-            });
-            elements.sort((a, b) => a._dist - b._dist);
+            const chargers = stations.filter(s => s.type === 'charger');
+            const fuels = stations.filter(s => s.type === 'fuel');
 
-            const isFuel = type === 'fuel';
-            const markerColor = isFuel ? '#3b82f6' : '#e53935';
-            const iconSvg = isFuel
-                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="22" x2="15" y2="22"></line>
-                        <line x1="4" y1="9" x2="14" y2="9"></line>
-                        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
-                        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
-                   </svg>`
-                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            chargers.forEach(station => {
+                const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                   </svg>`;
-
-            elements.forEach(el => {
-                const tags = el.tags || {};
-                const name = tags.name || (isFuel ? 'Posto de Combustível' : 'Posto de Recarga');
-                const operator = tags.brand || tags.operator || '';
-                const dist = el._dist;
+                    </svg>`;
 
                 const icon = L.divIcon({
                     className: 'custom-marker',
-                    html: `<div style="background:${markerColor};width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
+                    html: `<div style="background:#e53935;width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
                     iconSize: [32, 32],
                     iconAnchor: [16, 16],
                     popupAnchor: [0, -18]
                 });
 
-                const marker = L.marker([el.lat, el.lon], { icon }).addTo(chargersLayer);
-
-                const typeLabel = isFuel
-                    ? '<span class="popup-type" style="background:#3b82f6;">Posto de Combustível</span>'
-                    : '<span class="popup-type">Posto de Recarga</span>';
-
+                const marker = L.marker([station.lat, station.lng], { icon }).addTo(chargersLayer);
                 const popupContent = `
                     <div class="charger-popup">
-                        <h3>${name}</h3>
-                        <div>${typeLabel}</div>
-                        ${operator ? `<p><strong>Operador:</strong> ${operator}</p>` : ''}
-                        <p><strong>Distância:</strong> ${dist < 1 ? (dist * 1000).toFixed(0) + ' m' : dist.toFixed(1) + ' km'}</p>
-                        <button class="popup-btn" onclick="startRoute(${el.lat}, ${el.lon}, '${name.replace(/'/g, "")}')">
-                            Ver Rota
-                        </button>
+                        <h3>${station.name}</h3>
+                        <span class="popup-type">Posto de Recarga</span>
+                        ${station.operator ? `<p><strong>Operador:</strong> ${station.operator}</p>` : ''}
+                        <p><strong>Distância:</strong> ${station._dist < 1 ? (station._dist * 1000).toFixed(0) + ' m' : station._dist.toFixed(1) + ' km'}</p>
+                        <button class="popup-btn" onclick="startRoute(${station.lat}, ${station.lng}, '${station.name.replace(/'/g, "")}')">Ver Rota</button>
                     </div>
                 `;
-
                 marker.bindPopup(popupContent, { maxWidth: 260 });
-                chargerMarkers.push({ marker, el });
+                chargerMarkers.push({ marker, station });
             });
 
-            if (elements.length > 0) {
-                const label = isFuel ? 'postos de combustível' : 'postos elétricos';
-                countEl.innerHTML = `<strong>${elements.length}</strong> ${label} encontrados`;
+            fuels.forEach(station => {
+                const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="22" x2="15" y2="22"></line>
+                        <line x1="4" y1="9" x2="14" y2="9"></line>
+                        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
+                        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
+                    </svg>`;
+
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background:#3b82f6;width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -18]
+                });
+
+                const marker = L.marker([station.lat, station.lng], { icon }).addTo(chargersLayer);
+                const popupContent = `
+                    <div class="charger-popup">
+                        <h3>${station.name}</h3>
+                        <span class="popup-type" style="background:#3b82f6;">Posto de Combustível</span>
+                        ${station.operator ? `<p><strong>Operador:</strong> ${station.operator}</p>` : ''}
+                        <p><strong>Distância:</strong> ${station._dist < 1 ? (station._dist * 1000).toFixed(0) + ' m' : station._dist.toFixed(1) + ' km'}</p>
+                        <button class="popup-btn" onclick="startRoute(${station.lat}, ${station.lng}, '${station.name.replace(/'/g, "")}')">Ver Rota</button>
+                    </div>
+                `;
+                marker.bindPopup(popupContent, { maxWidth: 260 });
+                chargerMarkers.push({ marker, station });
+            });
+
+            if (stations.length > 0) {
+                const chargerCount = chargers.length;
+                const fuelCount = fuels.length;
+                countEl.innerHTML = `<strong>${chargerCount}</strong> elétricos & <strong>${fuelCount}</strong> combustível`;
                 countEl.classList.add('active');
             } else {
                 countEl.innerHTML = 'Nenhum posto encontrado por perto';
