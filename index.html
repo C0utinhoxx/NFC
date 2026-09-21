@@ -932,8 +932,8 @@
                 renderer: L.canvas({ padding: 0.5 })
             });
 
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors',
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 19
             }).addTo(map);
 
@@ -983,21 +983,56 @@
         }
 
         const STATIONS = [
-            { name: "Shell Recharge - Jardins", type: "charger", lat: -23.5615, lng: -46.6559, operator: "Shell Recharge" },
-            { name: "WBES - Paulista", type: "charger", lat: -23.5620, lng: -46.6540, operator: "WBES" },
-            { name: "Electromaps - Pinheiros", type: "charger", lat: -23.5670, lng: -46.6920, operator: "Electromaps" },
-            { name: "Shell Recharge - Morumbi", type: "charger", lat: -23.6010, lng: -46.6970, operator: "Shell Recharge" },
-            { name: "ReeCharge - Vila Madalena", type: "charger", lat: -23.5480, lng: -46.6910, operator: "ReeCharge" },
-            { name: "WBES - Vila Olímpia", type: "charger", lat: -23.5970, lng: -46.6830, operator: "WBES" },
-            { name: "Electromaps - Moema", type: "charger", lat: -23.6160, lng: -46.6710, operator: "Electromaps" },
-            { name: "Shell Recharge - Aeroporto", type: "charger", lat: -23.4310, lng: -46.4730, operator: "Shell Recharge" },
-            { name: "Carregaê - São Caetano", type: "charger", lat: -23.6250, lng: -46.5990, operator: "Carregaê" },
-            { name: "WBES - Santo Amaro", type: "charger", lat: -23.6220, lng: -46.6610, operator: "WBES" },
-            { name: "Electromaps - Guarulhos", type: "charger", lat: -23.4680, lng: -46.5330, operator: "Electromaps" },
-            { name: "Shell Recharge - Campinas", type: "charger", lat: -22.9050, lng: -47.0600, operator: "Shell Recharge" },
-            { name: "WBES - Campinas", type: "charger", lat: -22.9100, lng: -47.0550, operator: "WBES" },
-            { name: "Shell Recharge - Santo André", type: "charger", lat: -23.6650, lng: -46.5300, operator: "Shell Recharge" },
-            { name: "Electromaps - Santo André", type: "charger", lat: -23.6700, lng: -46.5350, operator: "Electromaps" },
+            { name: "Shell Recharge - Jardins", lat: -23.5615, lng: -46.6559, operator: "Shell Recharge" },
+            { name: "WBES - Paulista", lat: -23.5620, lng: -46.6540, operator: "WBES" },
+            { name: "Electromaps - Pinheiros", lat: -23.5670, lng: -46.6920, operator: "Electromaps" },
+            { name: "Shell Recharge - Morumbi", lat: -23.6010, lng: -46.6970, operator: "Shell Recharge" },
+            { name: "ReeCharge - Vila Madalena", lat: -23.5480, lng: -46.6910, operator: "ReeCharge" },
+            { name: "WBES - Vila Olímpia", lat: -23.5970, lng: -46.6830, operator: "WBES" },
+            { name: "Electromaps - Moema", lat: -23.6160, lng: -46.6710, operator: "Electromaps" },
+            { name: "Shell Recharge - Aeroporto", lat: -23.4310, lng: -46.4730, operator: "Shell Recharge" },
+            { name: "Carregaê - São Caetano", lat: -23.6250, lng: -46.5990, operator: "Carregaê" },
+            { name: "WBES - Santo Amaro", lat: -23.6220, lng: -46.6610, operator: "WBES" },
+            { name: "Electromaps - Guarulhos", lat: -23.4680, lng: -46.5330, operator: "Electromaps" },
+            { name: "Shell Recharge - Campinas", lat: -22.9050, lng: -47.0600, operator: "Shell Recharge" },
+            { name: "WBES - Campinas", lat: -22.9100, lng: -47.0550, operator: "WBES" },
+            { name: "Shell Recharge - Santo André", lat: -23.6650, lng: -46.5300, operator: "Shell Recharge" },
+            { name: "Electromaps - Santo André", lat: -23.6700, lng: -46.5350, operator: "Electromaps" },
+            { name: "WBES - Pinheiros", lat: -23.5630, lng: -46.6800, operator: "WBES" },
+            { name: "Electromaps - Itaim Bibi", lat: -23.5900, lng: -46.6700, operator: "Electromaps" },
+            { name: "Shell Recharge - Barra Funda", lat: -23.5350, lng: -46.6700, operator: "Shell Recharge" },
+            { name: "WBES - Lapa", lat: -23.5480, lng: -46.6750, operator: "WBES" },
+            { name: "Electromaps - Consolação", lat: -23.5550, lng: -46.6600, operator: "Electromaps" },
+            { name: "Shell Recharge - Brooklin", lat: -23.6110, lng: -46.6600, operator: "Shell Recharge" },
+            { name: "WBES - Jardins", lat: -23.5650, lng: -46.6650, operator: "WBES" },
+            { name: "Electromaps - Vila Nova Conceição", lat: -23.6040, lng: -46.6580, operator: "Electromaps" },
+            { name: "Shell Recharge - Taboão", lat: -23.6420, lng: -46.7200, operator: "Shell Recharge" },
+            { name: "Electromaps - Guaianases", lat: -23.5620, lng: -46.5150, operator: "Electromaps" },
+            { name: "WBES - Tatuapé", lat: -23.5550, lng: -46.5550, operator: "WBES" },
+            { name: "Electromaps - Penha", lat: -23.5350, lng: -46.5500, operator: "Electromaps" },
+            { name: "Shell Recharge - Santo Amaro", lat: -23.6400, lng: -46.6700, operator: "Shell Recharge" },
+            { name: "WBES - Campo Belo", lat: -23.6080, lng: -46.6500, operator: "WBES" },
+            { name: "Electromaps - Jardim Paulista", lat: -23.5700, lng: -46.6700, operator: "Electromaps" },
+            { name: "Shell Recharge - Lapa", lat: -23.5400, lng: -46.6780, operator: "Shell Recharge" },
+            { name: "WBES - Perdizes", lat: -23.5500, lng: -46.6720, operator: "WBES" },
+            { name: "Electromaps - Barra Funda", lat: -23.5320, lng: -46.6750, operator: "Electromaps" },
+            { name: "Shell Recharge - Parelheiros", lat: -23.6360, lng: -46.7280, operator: "Shell Recharge" },
+            { name: "WBES - Cidade Ademar", lat: -23.6250, lng: -46.6500, operator: "WBES" },
+            { name: "Electromaps - M'Boi Mirim", lat: -23.6450, lng: -46.7100, operator: "Electromaps" },
+            { name: "Shell Recharge - São Mateus", lat: -23.6280, lng: -46.5400, operator: "Shell Recharge" },
+            { name: "WBES - Jabaquara", lat: -23.6360, lng: -46.6400, operator: "WBES" },
+            { name: "Electromaps - Interlagos", lat: -23.6500, lng: -46.6900, operator: "Electromaps" },
+            { name: "Shell Recharge - Capão Redondo", lat: -23.6600, lng: -46.7100, operator: "Shell Recharge" },
+            { name: "WBES - Marsilac", lat: -23.6800, lng: -46.7500, operator: "WBES" },
+            { name: "Electromaps - ABC", lat: -23.6900, lng: -46.7300, operator: "Electromaps" },
+            { name: "Shell Recharge - Diadema", lat: -23.6850, lng: -46.6250, operator: "Shell Recharge" },
+            { name: "WBES - São Bernardo", lat: -23.6950, lng: -46.5700, operator: "WBES" },
+            { name: "Electromaps - Mauá", lat: -23.6600, lng: -46.4600, operator: "Electromaps" },
+            { name: "Shell Recharge - Ribeirão Pires", lat: -23.6600, lng: -46.4000, operator: "Shell Recharge" },
+            { name: "WBES - Rio Grande da Serra", lat: -23.7300, lng: -46.4000, operator: "WBES" },
+            { name: "Electromaps - Mogi das Cruzes", lat: -23.5200, lng: -46.1900, operator: "Electromaps" },
+            { name: "Shell Recharge - Suzano", lat: -23.5100, lng: -46.3100, operator: "Shell Recharge" },
+            { name: "WBES - Ferraz de Vasconcelos", lat: -23.5400, lng: -46.2600, operator: "WBES" },
         ];
 
         function loadNearbyChargers(lat, lng) {
