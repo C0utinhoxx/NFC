@@ -988,23 +988,6 @@
             { name: "Electromaps - Guarulhos", type: "charger", lat: -23.4680, lng: -46.5330, operator: "Electromaps" },
             { name: "Shell Recharge - Campinas", type: "charger", lat: -22.9050, lng: -47.0600, operator: "Shell Recharge" },
             { name: "WBES - Campinas", type: "charger", lat: -22.9100, lng: -47.0550, operator: "WBES" },
-            { name: "Shell - Av. Paulista", type: "fuel", lat: -23.5615, lng: -46.6555, operator: "Shell" },
-            { name: "Ipiranga - Av. Paulista", type: "fuel", lat: -23.5630, lng: -46.6570, operator: "Ipiranga" },
-            { name: "Shell - Vila Mariana", type: "fuel", lat: -23.5950, lng: -46.6420, operator: "Shell" },
-            { name: "Ipiranga - Brooklin", type: "fuel", lat: -23.6070, lng: -46.6710, operator: "Ipiranga" },
-            { name: "Shell - Morumbi", type: "fuel", lat: -23.6030, lng: -46.6980, operator: "Shell" },
-            { name: "Texaco - Pinheiros", type: "fuel", lat: -23.5660, lng: -46.6930, operator: "Texaco" },
-            { name: "Ipiranga - Pinheiros", type: "fuel", lat: -23.5700, lng: -46.6880, operator: "Ipiranga" },
-            { name: "Shell - Guarulhos", type: "fuel", lat: -23.4600, lng: -46.5280, operator: "Shell" },
-            { name: "Ipiranga - São Caetano", type: "fuel", lat: -23.6280, lng: -46.6020, operator: "Ipiranga" },
-            { name: "Shell - Campinas", type: "fuel", lat: -22.9000, lng: -47.0580, operator: "Shell" },
-            { name: "Ipiranga - Campinas", type: "fuel", lat: -22.9020, lng: -47.0620, operator: "Ipiranga" },
-            { name: "Shell - Barueri", type: "fuel", lat: -23.5080, lng: -46.8780, operator: "Shell" },
-            { name: "Ipiranga - Barueri", type: "fuel", lat: -23.5040, lng: -46.8760, operator: "Ipiranga" },
-            { name: "Shell - Osasco", type: "fuel", lat: -23.5340, lng: -46.7920, operator: "Shell" },
-            { name: "Ipiranga - Osasco", type: "fuel", lat: -23.5300, lng: -46.7950, operator: "Ipiranga" },
-            { name: "Shell - Santo André", type: "fuel", lat: -23.6670, lng: -46.5330, operator: "Shell" },
-            { name: "Ipiranga - Santo André", type: "fuel", lat: -23.6710, lng: -46.5360, operator: "Ipiranga" },
             { name: "Shell Recharge - Santo André", type: "charger", lat: -23.6650, lng: -46.5300, operator: "Shell Recharge" },
             { name: "Electromaps - Santo André", type: "charger", lat: -23.6700, lng: -46.5350, operator: "Electromaps" },
         ];
@@ -1034,10 +1017,7 @@
             const countEl = document.getElementById('map-count');
             loadingEl.classList.remove('active');
 
-            const chargers = stations.filter(s => s.type === 'charger');
-            const fuels = stations.filter(s => s.type === 'fuel');
-
-            chargers.forEach(station => {
+            stations.forEach(station => {
                 const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>`;
@@ -1064,40 +1044,8 @@
                 chargerMarkers.push({ marker, station });
             });
 
-            fuels.forEach(station => {
-                const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="22" x2="15" y2="22"></line>
-                        <line x1="4" y1="9" x2="14" y2="9"></line>
-                        <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path>
-                        <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path>
-                    </svg>`;
-
-                const icon = L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="background:#3b82f6;width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16],
-                    popupAnchor: [0, -18]
-                });
-
-                const marker = L.marker([station.lat, station.lng], { icon }).addTo(chargersLayer);
-                const popupContent = `
-                    <div class="charger-popup">
-                        <h3>${station.name}</h3>
-                        <span class="popup-type" style="background:#3b82f6;">Posto de Combustível</span>
-                        ${station.operator ? `<p><strong>Operador:</strong> ${station.operator}</p>` : ''}
-                        <p><strong>Distância:</strong> ${station._dist < 1 ? (station._dist * 1000).toFixed(0) + ' m' : station._dist.toFixed(1) + ' km'}</p>
-                        <button class="popup-btn" onclick="startRoute(${station.lat}, ${station.lng}, '${station.name.replace(/'/g, "")}')">Ver Rota</button>
-                    </div>
-                `;
-                marker.bindPopup(popupContent, { maxWidth: 260 });
-                chargerMarkers.push({ marker, station });
-            });
-
             if (stations.length > 0) {
-                const chargerCount = chargers.length;
-                const fuelCount = fuels.length;
-                countEl.innerHTML = `<strong>${chargerCount}</strong> elétricos & <strong>${fuelCount}</strong> combustível`;
+                countEl.innerHTML = `<strong>${stations.length}</strong> posto(s) elétrico(s) encontrado(s)`;
                 countEl.classList.add('active');
             } else {
                 countEl.innerHTML = 'Nenhum posto encontrado por perto';
