@@ -106,6 +106,15 @@
             overflow: hidden;
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-perspective: 1000;
+            perspective: 1000;
+        }
+
+        .leaflet-tile-pane {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .map-wrapper {
@@ -117,6 +126,8 @@
             border: 1px solid var(--border);
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
         .map-loading {
@@ -932,9 +943,10 @@
                 renderer: L.canvas({ padding: 0.5 })
             });
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
-                maxZoom: 19
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap & copy; CARTO',
+                maxZoom: 19,
+                subdomains: 'abcd'
             }).addTo(map);
 
             chargersLayer = L.layerGroup().addTo(map);
