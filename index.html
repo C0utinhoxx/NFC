@@ -40,67 +40,71 @@
                 <div class="route-control" id="route-control"></div>
             </div>
 
-            <div class="charger-card">
-                <div class="charger-header">
-                    <div class="charger-title">
-                        <div class="charger-icon">
+            <div class="charger-card-wrapper">
+                <div class="charger-card">
+                    <div class="charger-header">
+                        <div class="charger-title">
+                            <div class="charger-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="charger-name">Carregador</div>
+                                <div class="charger-id">GX-001</div>
+                            </div>
+                        </div>
+                        <div class="status-badge">
+                            <span class="status-dot"></span>
+                            Disponível
+                        </div>
+                    </div>
+
+                    <div class="charger-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Tipo</div>
+                            <div class="detail-value">AC 22kW</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Conector</div>
+                            <div class="detail-value">Type 2</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Preço</div>
+                            <div class="detail-value highlight">R$ 1,90/kWh</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Tarifa</div>
+                            <div class="detail-value">Horário Pico</div>
+                        </div>
+                    </div>
+
+                    <div class="nfc-section">
+                        <button class="nfc-tap-btn" onclick="simulateNFCTap()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            </svg>
+                            Tocar NFC para Recarregar
+                        </button>
+                        <div class="nfc-tip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            </svg>
+                            <span>ou toque o botão NFC, ou clique em "Iniciar Carregamento"</span>
+                        </div>
+                    </div>
+
+                    <div class="btn-charge-center">
+                        <button class="btn-primary" id="btn-start-charge" onclick="startCharging()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
-                        </div>
-                        <div>
-                            <div class="charger-name">Carregador</div>
-                            <div class="charger-id">GX-001</div>
-                        </div>
-                    </div>
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        Disponível
+                            Iniciar Carregamento
+                        </button>
                     </div>
                 </div>
-
-                <div class="charger-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Tipo</div>
-                        <div class="detail-value">AC 22kW</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Conector</div>
-                        <div class="detail-value">Type 2</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Preço</div>
-                        <div class="detail-value highlight">R$ 1,90/kWh</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Tarifa</div>
-                        <div class="detail-value">Horário Pico</div>
-                    </div>
-                </div>
-
-                <div class="nfc-section">
-                    <button class="nfc-tap-btn" onclick="simulateNFCTap()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                        </svg>
-                        Tocar NFC para Recarregar
-                    </button>
-                    <div class="nfc-tip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                        </svg>
-                        <span>ou toque o botão NFC, ou clique em "Iniciar Carregamento"</span>
-                    </div>
-                </div>
-
-                <button class="btn-primary" id="btn-start-charge" onclick="startCharging()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                    Iniciar Carregamento
-                </button>
             </div>
         </div>
     </div>
@@ -330,7 +334,11 @@
                 Tarifa fixa: R$ 1.90/kWh
             </div>
 
-            <button class="btn-secondary" onclick="stopCharging()" style="margin-top: 16px;">
+            <button class="btn-liberar" onclick="stopCharging()" style="margin-top: 20px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
                 Liberar Carga
             </button>
         </div>
