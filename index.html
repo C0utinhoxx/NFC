@@ -9,735 +9,16 @@
     <meta name="apple-mobile-web-app-title" content="GoodWe">
     <meta name="description" content="GoodWe - Carregamento de Veículos Elétricos">
     <title>GoodWe - Carregador</title>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZFdlIiwic2hvcnRfbmFtZSI6Ikdvb2RXZSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxMTE3IiwidGhlbWVfY29sb3IiOiIjMGYxMTE3IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyNlNTM5MzUnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIGZpbGw9J3doaXRlJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nc2Fucy1zZXJpZic+4peRIC8+dGV4dD48L3N2Zz4iLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
-    <style>
-        @import url('https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700');
-
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg: #0f1117;
-            --bg-card: #1a1a1a;
-            --bg-input: #181b22;
-            --border: #343843;
-            --text: #EDEDEC;
-            --text-secondary: #a0a0a0;
-            --text-muted: #8a8f98;
-            --primary: #e53935;
-            --primary-hover: #c62828;
-            --primary-glow: rgba(229, 57, 53, 0.3);
-            --font: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-        }
-
-        html, body {
-            height: 100%;
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow: hidden;
-        }
-
-        .screen {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
-        }
-
-        .logo {
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo svg {
-            width: 22px;
-            height: 22px;
-            color: white;
-        }
-
-        .brand {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        /* Main Map Area */
-        .main-map-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            padding: 0 20px 20px 20px;
-            gap: 16px;
-        }
-
-        #main-map {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            -webkit-perspective: 1000;
-            perspective: 1000;
-        }
-
-        .leaflet-tile-pane {
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-        }
-
-        .map-wrapper {
-            flex: 1;
-            min-height: 0;
-            position: relative;
-            border-radius: 14px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-        }
-
-        .map-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1001;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px 24px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            color: var(--text);
-            font-size: 13px;
-            max-width: 90%;
-            flex-wrap: wrap;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .map-loading.active {
-            display: flex;
-        }
-
-        .map-loading .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .map-count {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 1000;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: none;
-        }
-
-        .map-count.active {
-            display: block;
-        }
-
-        .map-count strong {
-            color: var(--primary);
-        }
-
-        .leaflet-control-zoom a {
-            background: var(--bg-card) !important;
-            color: var(--text) !important;
-            border-color: var(--border) !important;
-        }
-
-        .leaflet-control-zoom a:hover {
-            background: var(--bg-input) !important;
-        }
-
-        .custom-marker {
-            background: transparent;
-            border: none;
-            border-radius: 0;
-            box-shadow: none;
-            display: block;
-        }
-
-        .custom-marker svg {
-            width: 16px;
-            height: 16px;
-            color: white;
-        }
-
-        .user-marker {
-            background: #3b82f6;
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-        }
-
-        .leaflet-popup-content-wrapper {
-            border-radius: 10px !important;
-        }
-
-        .leaflet-popup-tip {
-            background: white !important;
-        }
-
-        .charger-popup {
-            font-family: var(--font);
-            min-width: 200px;
-        }
-
-        .charger-popup h3 {
-            margin: 0 0 4px 0;
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
-        .charger-popup p {
-            margin: 0 0 2px 0;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .charger-popup .popup-type {
-            display: inline-block;
-            background: #e53935;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 500;
-            margin: 6px 0;
-        }
-
-        .charger-popup .popup-btn {
-            display: block;
-            width: 100%;
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #e53935;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            font-family: var(--font);
-        }
-
-        .charger-popup .popup-btn:hover {
-            background: #c62828;
-        }
-
-        /* Charger Card at Bottom */
-        .charger-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px 20px;
-            flex-shrink: 0;
-        }
-
-        .charger-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .charger-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .charger-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .charger-icon svg {
-            width: 20px;
-            height: 20px;
-            color: white;
-        }
-
-        .charger-name {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .charger-id {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
-            background: rgba(229, 57, 53, 0.1);
-            color: var(--primary);
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--primary);
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .charger-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .detail-item {
-            background: var(--bg-input);
-            border-radius: 8px;
-            padding: 10px 12px;
-        }
-
-        .detail-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-bottom: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .detail-value {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .detail-value.highlight {
-            color: var(--primary);
-        }
-
-        .nfc-tip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(229, 57, 53, 0.1);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 14px;
-        }
-
-        .nfc-tip svg {
-            width: 18px;
-            height: 18px;
-            color: var(--primary);
-            flex-shrink: 0;
-        }
-
-        .nfc-tip span {
-            font-size: 12px;
-            color: var(--primary);
-            line-height: 1.4;
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            box-shadow: 0 0 20px var(--primary-glow);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-
-        .btn-primary svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .route-control {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
-            z-index: 1000;
-            display: none;
-        }
-
-        .route-control.active {
-            display: block;
-        }
-
-        .route-info-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-        }
-
-        .route-info-title {
-            margin: 0 0 4px 0;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .route-info-detail {
-            margin: 0;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .route-info-link {
-            display: inline-block;
-            margin-top: 6px;
-            color: #e53935;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .btn-cancel-route {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-card);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-cancel-route:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Charging Screen */
-        .screen-charging {
-            padding: 24px;
-        }
-
-        .charging-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            gap: 32px;
-        }
-
-        .charging-icon-wrapper {
-            position: relative;
-            width: 120px;
-            height: 120px;
-        }
-
-        .charging-icon-ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 3px solid var(--border);
-        }
-
-        .charging-icon-ring::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: var(--primary);
-            animation: spin 1.5s linear infinite;
-        }
-
-        .charging-icon-bg {
-            position: absolute;
-            inset: 12px;
-            background: rgba(229, 57, 53, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .charging-icon-bg svg {
-            width: 40px;
-            height: 40px;
-            color: var(--primary);
-            animation: lightning-pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes lightning-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.05); }
-        }
-
-        .progress-section {
-            width: 100%;
-            max-width: 320px;
-        }
-
-        .progress-percent {
-            font-size: 48px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 16px;
-        }
-
-        .progress-percent span {
-            font-size: 24px;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .progress-bar-track {
-            width: 100%;
-            height: 8px;
-            background: var(--border);
-            border-radius: 999px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary);
-            border-radius: 999px;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .charging-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            width: 100%;
-            max-width: 320px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 8px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .btn-secondary {
-            width: 100%;
-            max-width: 320px;
-            padding: 14px;
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 500;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: rgba(229, 57, 53, 0.05);
-        }
-
-        .btn-secondary:active {
-            transform: scale(0.98);
-        }
-
-        /* Done Screen */
-        .done-icon {
-            width: 80px;
-            height: 80px;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 8px;
-        }
-
-        .done-icon svg {
-            width: 40px;
-            height: 40px;
-            color: #10b981;
-        }
-
-        .done-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .done-subtitle {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-        }
-
-        .receipt-card {
-            width: 100%;
-            max-width: 320px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-        }
-
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-        }
-
-        .receipt-row:not(:last-child) {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .receipt-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .receipt-value {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .receipt-total .receipt-label {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        .receipt-total .receipt-value {
-            color: var(--primary);
-            font-size: 16px;
-        }
-
-        @media (max-width: 360px) {
-            .progress-percent {
-                font-size: 40px;
-            }
-
-            .charging-stats {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZFdlIiwic2hvcnRfbmFtZSI6Ikdvb2RXZSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxMTE3IiwidGhlbWVfY29sb3IiOiIjMGYxMTE3IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyNlNTM5MzUnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIGZpbGw9J3doaXRlJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb25tLWZhbWlseT0nc2Fucy1zZXJpZic+4peRIC8+dGV4dD48L3N2Zz4iLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-    <!-- Screen 1: Main (Map + Charger Card) -->
+    <div id="nfc-overlay" class="nfc-overlay">
+        <div class="nfc-wave"></div>
+        <p>Approve o NFC no celular</p>
+    </div>
+
     <div id="screen-charger" class="screen active">
         <div class="header">
             <div class="logo">
@@ -789,7 +70,7 @@
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Preço</div>
-                        <div class="detail-value highlight">R$ 1,29/kWh</div>
+                        <div class="detail-value highlight">R$ 1,90/kWh</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Tarifa</div>
@@ -797,14 +78,24 @@
                     </div>
                 </div>
 
-                <div class="nfc-tip">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                    </svg>
+                <div class="nfc-section">
+                    <button class="nfc-tap-btn" onclick="simulateNFCTap()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                        Tocar NFC para Recarregar
+                    </button>
+                    <div class="nfc-tip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                        <span>ou toque o botão NFC, ou clique em "Iniciar Carregamento"</span>
+                    </div>
                 </div>
 
-                <button class="btn-primary" onclick="startCharging()">
+                <button class="btn-primary" id="btn-start-charge" onclick="startCharging()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
@@ -812,6 +103,178 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <div id="screen-auth" class="screen auth-screen">
+        <button class="btn-back" onclick="showScreen('screen-charger')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <div class="auth-card">
+            <div class="auth-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            </div>
+            <h2>Bem-vindo</h2>
+            <p class="auth-subtitle">Autentique-se para iniciar o carregamento</p>
+
+            <form id="auth-form" onsubmit="event.preventDefault(); handleLogin();">
+                <div class="form-group">
+                    <label>Usuário</label>
+                    <input type="text" id="auth-username" placeholder="Digite seu usuário" autocomplete="username" />
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="auth-password" placeholder="Digite sua senha" autocomplete="current-password" />
+                </div>
+                <button type="submit" class="btn-primary">
+                    Entrar
+                </button>
+                <div class="auth-loading" id="auth-loading">
+                    <div class="spinner"></div>
+                    Validando...
+                </div>
+                <div class="auth-error" id="auth-error"></div>
+                <div class="auth-switch" style="margin-top: 16px;">
+                    Não tem conta? <a onclick="showRegisterScreen()">Cadastrar-se</a>
+                </div>
+            </form>
+
+            <form id="auth-register-form" onsubmit="event.preventDefault(); handleRegister();" style="display:none;">
+                <div class="form-group">
+                    <label>Nome completo</label>
+                    <input type="text" id="reg-name" placeholder="Seu nome" />
+                </div>
+                <div class="form-group">
+                    <label>Usuário</label>
+                    <input type="text" id="reg-username" placeholder="Escolha um usuário" />
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="reg-password" placeholder="Crie uma senha" />
+                </div>
+                <button type="submit" class="btn-primary">
+                    Cadastrar
+                </button>
+                <div class="auth-loading" id="register-loading">
+                    <div class="spinner"></div>
+                    Criando conta...
+                </div>
+                <div class="auth-error" id="register-error"></div>
+                <div id="reg-success" style="display:none; color: #10b981; font-size: 14px; margin-top: 12px;">
+                    Conta criada com sucesso! Redirecionando...
+                </div>
+                <div class="auth-switch">
+                    Já tem conta? <a onclick="showAuthScreen()">Entrar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="screen-ready" class="screen ready-screen">
+        <button class="btn-back" onclick="cancelRoute(); showScreen('screen-charger')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <div class="ready-content">
+            <div class="ready-icon-wrapper">
+                <div class="ready-icon-ring"></div>
+                <div class="ready-icon-bg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="ready-title">Pronto para Carregar</div>
+            <div class="ready-subtitle">Autenticação confirmada. Selecione o tipo de carga e inicie o carregamento.</div>
+
+            <div class="route-summary">
+                <div class="route-summary-row">
+                    <span class="route-summary-label">Carregador</span>
+                    <span class="route-summary-value" id="route-charger-name">-</span>
+                </div>
+                <div class="route-summary-row">
+                    <span class="route-summary-label">Distância</span>
+                    <span class="route-summary-value" id="route-distance">-</span>
+                </div>
+                <div class="route-summary-row">
+                    <span class="route-summary-label">Tempo estimado</span>
+                    <span class="route-summary-value" id="route-time">-</span>
+                </div>
+                <div class="route-summary-row">
+                    <span class="route-summary-label">Tarifa</span>
+                    <span class="route-summary-value" id="route-tariff">-</span>
+                </div>
+            </div>
+
+            <div class="battery-indicator">
+                <svg class="battery-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="6" width="18" height="12" rx="2"></rect>
+                    <line x1="23" y1="13" x2="23" y2="11"></line>
+                </svg>
+                <div class="battery-bar-track">
+                    <div class="battery-bar-fill" id="battery-fill" style="width:30%"></div>
+                </div>
+                <span class="battery-text" id="battery-text">30%</span>
+            </div>
+
+            <button class="btn-primary" onclick="showChargeTypeScreen()" style="max-width: 360px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                Selecionar Tipo de Carga
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-type" class="screen type-screen">
+        <button class="btn-back" onclick="showScreen('screen-ready')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <div class="type-content">
+            <div class="type-title">Tipo de Carga</div>
+            <div class="type-subtitle">Escolha como deseja carregar</div>
+
+            <div class="type-cards">
+                <div class="type-card" data-type="partial-percent" onclick="selectChargeType('partial-percent')">
+                    <div class="type-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20V10"></path>
+                            <path d="M18 20V4"></path>
+                            <path d="M6 20v-4"></path>
+                        </svg>
+                    </div>
+                    <div class="type-card-text">
+                        <h3>Carga Parcial</h3>
+                        <p>Escolha a porcentagem ou valor desejado</p>
+                    </div>
+                </div>
+
+                <div class="type-card" data-type="full" onclick="selectChargeType('full')">
+                    <div class="type-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20V10"></path>
+                            <path d="M18 20V4"></path>
+                            <path d="M6 20v-4"></path>
+                        </svg>
+                    </div>
+                    <div class="type-card-text">
+                        <h3>Carga Total</h3>
+                        <p>Carrega do nível atual até 100%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="type-detail" id="type-detail"></div>
+        </div>
+        <button class="btn-primary" id="btn-confirm-type" onclick="confirmChargeType()" style="max-width: 360px; margin-bottom: 24px; display: none;">
+            Iniciar Carregamento
+        </button>
     </div>
 
     <div id="screen-charging" class="screen screen-charging">
@@ -832,6 +295,13 @@
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
                 </div>
+            </div>
+
+            <div class="charge-type-badge" id="charge-type-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span id="charge-type-label">Carga</span>
             </div>
 
             <div class="progress-section">
@@ -856,12 +326,17 @@
                 </div>
             </div>
 
-            <button class="btn-secondary" onclick="stopCharging()">Liberar Carga</button>
+            <div class="tariff-badge" style="margin-top: 8px;">
+                Tarifa fixa: R$ 1.90/kWh
+            </div>
+
+            <button class="btn-secondary" onclick="stopCharging()" style="margin-top: 16px;">
+                Liberar Carga
+            </button>
         </div>
     </div>
 
-    <!-- Screen 3: Done -->
-    <div id="screen-done" class="screen screen-charging">
+    <div id="screen-done" class="screen done-screen">
         <div class="header" style="padding:16px 0;">
             <div class="logo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -871,7 +346,7 @@
             <span class="brand">GoodWe</span>
         </div>
 
-        <div class="charging-content">
+        <div class="done-content">
             <div class="done-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
@@ -881,6 +356,10 @@
             <div class="done-subtitle">Sua sessão foi encerrada com sucesso</div>
 
             <div class="receipt-card">
+                <div class="receipt-row">
+                    <span class="receipt-label">Tipo de Carga</span>
+                    <span class="receipt-value" id="final-type">-</span>
+                </div>
                 <div class="receipt-row">
                     <span class="receipt-label">Carregador</span>
                     <span class="receipt-value">GX-001</span>
@@ -892,6 +371,17 @@
                 <div class="receipt-row">
                     <span class="receipt-label">Energia</span>
                     <span class="receipt-value" id="final-energy">0.0 kWh</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Carga Final</span>
+                    <span class="receipt-value" id="final-percent">0%</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Usuário</span>
+                    <span class="receipt-value" id="final-user">-</span>
+                </div>
+                <div class="receipt-tariff">
+                    <div class="tariff-badge">Tarifa: R$ 1.90/kWh</div>
                 </div>
                 <div class="receipt-row receipt-total">
                     <span class="receipt-label">Total</span>
@@ -909,315 +399,19 @@
         </div>
     </div>
 
-    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <script src="js/app.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/charging.js"></script>
+    <script src="js/nfc.js"></script>
     <script>
-        let chargingInterval = null;
-        let seconds = 0;
-        let percent = 0;
-        const pricePerKwh = 1.29;
-
-        let map = null;
-        let userMarker = null;
-        let chargerMarkers = [];
-        let routeLine = null;
-        let userPosition = null;
-        let chargersLayer = null;
-
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if (id === 'screen-charger' && map) {
-                setTimeout(() => map.invalidateSize(), 100);
-            }
-        }
-
-        function initMap() {
-            map = L.map('main-map', {
-                center: [-23.5505, -46.6333],
-                zoom: 13,
-                zoomControl: true,
-                preferCanvas: true,
-                renderer: L.canvas({ padding: 0.5 })
-            });
-
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
-
-            chargersLayer = L.layerGroup().addTo(map);
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    userPosition = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-
-                    const userIcon = L.divIcon({
-                        className: 'user-marker',
-                        html: '',
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
-                    });
-
-                    userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon }).addTo(map);
-                    userMarker.bindPopup('Você está aqui');
-
-                    map.setView([userPosition.lat, userPosition.lng], 14);
-                    loadNearbyChargers(userPosition.lat, userPosition.lng);
-                },
-                (error) => {
-                    console.warn('Geolocalização negada, usando localização padrão:', error);
-                    const defaultLat = -23.5505;
-                    const defaultLng = -46.6333;
-                    userPosition = { lat: defaultLat, lng: defaultLng };
-
-                    const userIcon = L.divIcon({
-                        className: 'user-marker',
-                        html: '',
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
-                    });
-
-                    userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon }).addTo(map);
-                    userMarker.bindPopup('Localização padrão');
-
-                    map.setView([userPosition.lat, userPosition.lng], 14);
-                    loadNearbyChargers(defaultLat, defaultLng);
-                },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-            );
-        }
-
-        const STATIONS = [
-            { name: "Shell Recharge - Jardins", lat: -23.5615, lng: -46.6559, operator: "Shell Recharge" },
-            { name: "WBES - Paulista", lat: -23.5620, lng: -46.6540, operator: "WBES" },
-            { name: "Electromaps - Pinheiros", lat: -23.5670, lng: -46.6920, operator: "Electromaps" },
-            { name: "Shell Recharge - Morumbi", lat: -23.6010, lng: -46.6970, operator: "Shell Recharge" },
-            { name: "ReeCharge - Vila Madalena", lat: -23.5480, lng: -46.6910, operator: "ReeCharge" },
-            { name: "WBES - Vila Olímpia", lat: -23.5970, lng: -46.6830, operator: "WBES" },
-            { name: "Electromaps - Moema", lat: -23.6160, lng: -46.6710, operator: "Electromaps" },
-            { name: "Shell Recharge - Aeroporto", lat: -23.4310, lng: -46.4730, operator: "Shell Recharge" },
-            { name: "Carregaê - São Caetano", lat: -23.6250, lng: -46.5990, operator: "Carregaê" },
-            { name: "WBES - Santo Amaro", lat: -23.6220, lng: -46.6610, operator: "WBES" },
-            { name: "Electromaps - Guarulhos", lat: -23.4680, lng: -46.5330, operator: "Electromaps" },
-            { name: "Shell Recharge - Campinas", lat: -22.9050, lng: -47.0600, operator: "Shell Recharge" },
-            { name: "WBES - Campinas", lat: -22.9100, lng: -47.0550, operator: "WBES" },
-            { name: "Shell Recharge - Santo André", lat: -23.6650, lng: -46.5300, operator: "Shell Recharge" },
-            { name: "Electromaps - Santo André", lat: -23.6700, lng: -46.5350, operator: "Electromaps" },
-            { name: "WBES - Pinheiros", lat: -23.5630, lng: -46.6800, operator: "WBES" },
-            { name: "Electromaps - Itaim Bibi", lat: -23.5900, lng: -46.6700, operator: "Electromaps" },
-            { name: "Shell Recharge - Barra Funda", lat: -23.5350, lng: -46.6700, operator: "Shell Recharge" },
-            { name: "WBES - Lapa", lat: -23.5480, lng: -46.6750, operator: "WBES" },
-            { name: "Electromaps - Consolação", lat: -23.5550, lng: -46.6600, operator: "Electromaps" },
-            { name: "Shell Recharge - Brooklin", lat: -23.6110, lng: -46.6600, operator: "Shell Recharge" },
-            { name: "WBES - Jardins", lat: -23.5650, lng: -46.6650, operator: "WBES" },
-            { name: "Electromaps - Vila Nova Conceição", lat: -23.6040, lng: -46.6580, operator: "Electromaps" },
-            { name: "Shell Recharge - Taboão", lat: -23.6420, lng: -46.7200, operator: "Shell Recharge" },
-            { name: "Electromaps - Guaianases", lat: -23.5620, lng: -46.5150, operator: "Electromaps" },
-            { name: "WBES - Tatuapé", lat: -23.5550, lng: -46.5550, operator: "WBES" },
-            { name: "Electromaps - Penha", lat: -23.5350, lng: -46.5500, operator: "Electromaps" },
-            { name: "Shell Recharge - Santo Amaro", lat: -23.6400, lng: -46.6700, operator: "Shell Recharge" },
-            { name: "WBES - Campo Belo", lat: -23.6080, lng: -46.6500, operator: "WBES" },
-            { name: "Electromaps - Jardim Paulista", lat: -23.5700, lng: -46.6700, operator: "Electromaps" },
-            { name: "Shell Recharge - Lapa", lat: -23.5400, lng: -46.6780, operator: "Shell Recharge" },
-            { name: "WBES - Perdizes", lat: -23.5500, lng: -46.6720, operator: "WBES" },
-            { name: "Electromaps - Barra Funda", lat: -23.5320, lng: -46.6750, operator: "Electromaps" },
-            { name: "Shell Recharge - Parelheiros", lat: -23.6360, lng: -46.7280, operator: "Shell Recharge" },
-            { name: "WBES - Cidade Ademar", lat: -23.6250, lng: -46.6500, operator: "WBES" },
-            { name: "Electromaps - M'Boi Mirim", lat: -23.6450, lng: -46.7100, operator: "Electromaps" },
-            { name: "Shell Recharge - São Mateus", lat: -23.6280, lng: -46.5400, operator: "Shell Recharge" },
-            { name: "WBES - Jabaquara", lat: -23.6360, lng: -46.6400, operator: "WBES" },
-            { name: "Electromaps - Interlagos", lat: -23.6500, lng: -46.6900, operator: "Electromaps" },
-            { name: "Shell Recharge - Capão Redondo", lat: -23.6600, lng: -46.7100, operator: "Shell Recharge" },
-            { name: "WBES - Marsilac", lat: -23.6800, lng: -46.7500, operator: "WBES" },
-            { name: "Electromaps - ABC", lat: -23.6900, lng: -46.7300, operator: "Electromaps" },
-            { name: "Shell Recharge - Diadema", lat: -23.6850, lng: -46.6250, operator: "Shell Recharge" },
-            { name: "WBES - São Bernardo", lat: -23.6950, lng: -46.5700, operator: "WBES" },
-            { name: "Electromaps - Mauá", lat: -23.6600, lng: -46.4600, operator: "Electromaps" },
-            { name: "Shell Recharge - Ribeirão Pires", lat: -23.6600, lng: -46.4000, operator: "Shell Recharge" },
-            { name: "WBES - Rio Grande da Serra", lat: -23.7300, lng: -46.4000, operator: "WBES" },
-            { name: "Electromaps - Mogi das Cruzes", lat: -23.5200, lng: -46.1900, operator: "Electromaps" },
-            { name: "Shell Recharge - Suzano", lat: -23.5100, lng: -46.3100, operator: "Shell Recharge" },
-            { name: "WBES - Ferraz de Vasconcelos", lat: -23.5400, lng: -46.2600, operator: "WBES" },
-        ];
-
-        function loadNearbyChargers(lat, lng) {
-            chargersLayer.clearLayers();
-            chargerMarkers = [];
-
-            const loadingEl = document.getElementById('map-loading');
-            const countEl = document.getElementById('map-count');
-            loadingEl.classList.add('active');
-            loadingEl.innerHTML = '<div class="spinner"></div> Buscando postos...';
-            countEl.classList.remove('active');
-
-            setTimeout(() => {
-                const nearby = STATIONS.map(station => ({
-                    ...station,
-                    _dist: calculateDistance(lat, lng, station.lat, station.lng)
-                })).sort((a, b) => a._dist - b._dist);
-
-                renderStations(nearby, lat, lng);
-            }, 300);
-        }
-
-        function renderStations(stations, lat, lng) {
-            const loadingEl = document.getElementById('map-loading');
-            const countEl = document.getElementById('map-count');
-            loadingEl.classList.remove('active');
-
-            stations.forEach(station => {
-                const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>`;
-
-                const icon = L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="background:#e53935;width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16],
-                    popupAnchor: [0, -18]
-                });
-
-                const marker = L.marker([station.lat, station.lng], { icon }).addTo(chargersLayer);
-                const popupContent = `
-                    <div class="charger-popup">
-                        <h3>${station.name}</h3>
-                        <span class="popup-type">Posto de Recarga</span>
-                        ${station.operator ? `<p><strong>Operador:</strong> ${station.operator}</p>` : ''}
-                        <p><strong>Distância:</strong> ${station._dist < 1 ? (station._dist * 1000).toFixed(0) + ' m' : station._dist.toFixed(1) + ' km'}</p>
-                        <button class="popup-btn" onclick="startRoute(${station.lat}, ${station.lng}, '${station.name.replace(/'/g, "")}')">Ver Rota</button>
-                    </div>
-                `;
-                marker.bindPopup(popupContent, { maxWidth: 260 });
-                chargerMarkers.push({ marker, station });
-            });
-
-            if (stations.length > 0) {
-                countEl.innerHTML = `<strong>${stations.length}</strong> posto(s) elétrico(s) encontrado(s)`;
-                countEl.classList.add('active');
-            } else {
-                countEl.innerHTML = 'Nenhum posto encontrado por perto';
-                countEl.classList.add('active');
-            }
-        }
-
-        function startRoute(destLat, destLng, name) {
-            if (!userPosition) {
-                alert('Aguarde sua localização ser detectada.');
-                return;
-            }
-
-            map.closePopup();
-
-            const distance = calculateDistance(userPosition.lat, userPosition.lng, destLat, destLng);
-            const timeEstimate = Math.ceil(distance * 3);
-
-            if (routeLine) map.removeLayer(routeLine);
-
-            routeLine = L.polyline([
-                [userPosition.lat, userPosition.lng],
-                [destLat, destLng]
-            ], {
-                color: '#e53935',
-                weight: 4,
-                opacity: 0.8,
-                dashArray: '10, 10',
-                lineCap: 'round'
-            }).addTo(map);
-
-            map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-
-            const routeControl = document.getElementById('route-control');
-            routeControl.classList.add('active');
-            routeControl.innerHTML = `
-                <div class="route-info-box">
-                    <p class="route-info-title">Rota para ${name}</p>
-                    <p class="route-info-detail">${distance < 1 ? (distance * 1000).toFixed(0) + ' m' : distance.toFixed(1) + ' km'} | ~${timeEstimate} min</p>
-                    <a class="route-info-link" href="https://www.google.com/maps/dir/?api=1&origin=${userPosition.lat},${userPosition.lng}&destination=${destLat},${destLng}&travelmode=driving" target="_blank">Abrir no Google Maps</a>
-                </div>
-                <button class="btn-cancel-route" onclick="cancelRoute()">Cancelar Rota</button>
-            `;
-        }
-
-        function calculateDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
-
-        function cancelRoute() {
-            if (routeLine) {
-                map.removeLayer(routeLine);
-                routeLine = null;
-            }
-            document.getElementById('route-control').classList.remove('active');
-            document.getElementById('route-control').innerHTML = '';
-        }
-
-        // === Charging Functions ===
-        function startCharging() {
-            showScreen('screen-charging');
-            seconds = 0;
-            percent = 0;
-            updateDisplay();
-            chargingInterval = setInterval(() => {
-                seconds++;
-                percent = Math.min(100, percent + 0.5);
-                updateDisplay();
-                if (percent >= 100) stopCharging();
-            }, 500);
-        }
-
-        function stopCharging() {
-            clearInterval(chargingInterval);
-            chargingInterval = null;
-            document.getElementById('final-time').textContent = formatTime(seconds);
-            document.getElementById('final-energy').textContent = calcEnergy();
-            document.getElementById('final-cost').textContent = calcCost();
-            showScreen('screen-done');
-        }
-
-        function resetAll() {
-            seconds = 0;
-            percent = 0;
-            updateDisplay();
-            showScreen('screen-charger');
-        }
-
-        function updateDisplay() {
-            document.getElementById('percent').textContent = Math.floor(percent);
-            document.getElementById('progress-bar').style.width = percent + '%';
-            document.getElementById('time').textContent = formatTime(seconds);
-            document.getElementById('energy').textContent = calcEnergy();
-            document.getElementById('cost').textContent = calcCost();
-        }
-
-        function formatTime(s) {
-            const m = Math.floor(s / 60);
-            const sec = s % 60;
-            return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-        }
-
-        function calcEnergy() {
-            return (seconds * 0.005).toFixed(1) + ' kWh';
-        }
-
-        function calcCost() {
-            return 'R$ ' + (seconds * 0.005 * pricePerKwh).toFixed(2).replace('.', ',');
-        }
-
-        document.addEventListener('DOMContentLoaded', initMap);
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initMap === 'function') initMap();
+            if (typeof initNFCListener === 'function') initNFCListener();
+        });
     </script>
 </body>
 </html>
