@@ -1343,9 +1343,10 @@ body::after {
 
 /* === Liberar Carga Button - properly styled === */
 .btn-liberar {
-    width: 100%;
+    width: auto;
+    align-self: center;
     max-width: 340px;
-    padding: 16px 28px;
+    padding: 16px 32px;
     background: transparent;
     color: var(--text);
     border: 2px solid var(--border);
