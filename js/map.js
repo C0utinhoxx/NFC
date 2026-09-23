@@ -59,6 +59,7 @@ const STATIONS = [
 ];
 
 function initMap() {
+    if (map) return;
     map = L.map('main-map', {
         center: [-23.5505, -46.6333],
         zoom: 13,
@@ -76,16 +77,8 @@ function initMap() {
 
     navigator.geolocation.getCurrentPosition(
         (position) => {
-            userPosition = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-            const userIcon = L.divIcon({
-                className: 'user-marker',
-                html: '',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
+            userPosition = { lat: position.coords.latitude, lng: position.coords.longitude };
+            const userIcon = L.divIcon({ className: 'user-marker', html: '', iconSize: [20, 20], iconAnchor: [10, 10] });
             userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon }).addTo(map);
             userMarker.bindPopup('Você está aqui');
             map.setView([userPosition.lat, userPosition.lng], 14);
@@ -94,12 +87,7 @@ function initMap() {
         (error) => {
             console.warn('Geolocalização negada:', error);
             userPosition = { lat: -23.5505, lng: -46.6333 };
-            const userIcon = L.divIcon({
-                className: 'user-marker',
-                html: '',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
+            const userIcon = L.divIcon({ className: 'user-marker', html: '', iconSize: [20, 20], iconAnchor: [10, 10] });
             userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon }).addTo(map);
             userMarker.bindPopup('Localização padrão');
             map.setView([userPosition.lat, userPosition.lng], 14);
@@ -113,17 +101,12 @@ function loadNearbyChargers(lat, lng) {
     if (!chargersLayer) return;
     chargersLayer.clearLayers();
     chargerMarkers = [];
-
     const loadingEl = document.getElementById('map-loading');
     const countEl = document.getElementById('map-count');
     if (loadingEl) loadingEl.classList.add('active');
     if (countEl) countEl.classList.remove('active');
-
     setTimeout(() => {
-        const nearby = STATIONS.map(station => ({
-            ...station,
-            _dist: calculateDistance(lat, lng, station.lat, station.lng)
-        })).sort((a, b) => a._dist - b._dist);
+        const nearby = STATIONS.map(station => ({ ...station, _dist: calculateDistance(lat, lng, station.lat, station.lng) })).sort((a, b) => a._dist - b._dist);
         renderStations(nearby, lat, lng);
     }, 300);
 }
@@ -132,127 +115,61 @@ function renderStations(stations, lat, lng) {
     const loadingEl = document.getElementById('map-loading');
     const countEl = document.getElementById('map-count');
     if (loadingEl) loadingEl.classList.remove('active');
-
     stations.forEach(station => {
-        const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>`;
-
+        const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
         const icon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background:#e53935;width:32px;height:32px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;">${iconSvg}</div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -18]
+            iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -18]
         });
-
         const marker = L.marker([station.lat, station.lng], { icon }).addTo(chargersLayer);
-        const popupContent = `
-            <div class="charger-popup">
-                <h3>${station.name}</h3>
-                <span class="popup-type">Posto de Recarga</span>
-                ${station.operator ? `<p><strong>Operador:</strong> ${station.operator}</p>` : ''}
-                <p><strong>Distância:</strong> ${station._dist < 1 ? (station._dist * 1000).toFixed(0) + ' m' : station._dist.toFixed(1) + ' km'}</p>
-                <button class="popup-btn" onclick="window.selectAndStartRoute(${station.lat}, ${station.lng}, '${station.name.replace(/'/g, "\\'")}')">Ver Rota</button>
-            </div>
-        `;
+        const popupContent = `<div class="charger-popup"><h3>${station.name}</h3><span class="popup-type">Posto de Recarga</span>${station.operator ? `<p><strong>Operador:</strong> ${station.operator}</p>` : ''}<p><strong>Distância:</strong> ${station._dist < 1 ? (station._dist * 1000).toFixed(0) + ' m' : station._dist.toFixed(1) + ' km'}</p><button class="popup-btn" onclick="window.selectAndStartRoute(${station.lat}, ${station.lng}, '${station.name.replace(/'/g, "\\'")}')">Ver Rota</button></div>`;
         marker.bindPopup(popupContent, { maxWidth: 260 });
         chargerMarkers.push({ marker, station });
     });
-
     if (stations.length > 0) {
-        if (countEl) {
-            countEl.innerHTML = `<strong>${stations.length}</strong> posto(s) elétrico(s) encontrado(s)`;
-            countEl.classList.add('active');
-        }
+        if (countEl) { countEl.innerHTML = `<strong>${stations.length}</strong> posto(s) elétrico(s) encontrado(s)`; countEl.classList.add('active'); }
     } else {
-        if (countEl) {
-            countEl.innerHTML = 'Nenhum posto encontrado por perto';
-            countEl.classList.add('active');
-        }
+        if (countEl) { countEl.innerHTML = 'Nenhum posto encontrado por perto'; countEl.classList.add('active'); }
     }
 }
 
 function selectAndStartRoute(destLat, destLng, name) {
-    state.selectedCharger = {
-        name: name,
-        lat: destLat,
-        lng: destLng,
-        distance: calculateDistance(userPosition.lat, userPosition.lng, destLat, destLng)
-    };
+    state.selectedCharger = { name, lat: destLat, lng: destLng, distance: calculateDistance(userPosition.lat, userPosition.lng, destLat, destLng) };
     startRoute(destLat, destLng, name);
 }
 
-window.selectAndStartRoute = selectAndStartRoute;
-window.startRoute = startRoute;
-window.cancelRoute = cancelRoute;
-
 function startRoute(destLat, destLng, name) {
-    if (!userPosition) {
-        alert('Aguarde sua localização ser detectada.');
-        return;
-    }
-
+    if (!userPosition) { alert('Aguarde sua localização ser detectada.'); return; }
     map.closePopup();
-
     const distance = calculateDistance(userPosition.lat, userPosition.lng, destLat, destLng);
     const timeEstimate = Math.ceil(distance * 3);
-
-    state.selectedCharger = {
-        name: name,
-        lat: destLat,
-        lng: destLng,
-        distance: distance
-    };
-
+    state.selectedCharger = { name, lat: destLat, lng: destLng, distance };
     if (routeLine) map.removeLayer(routeLine);
-
-    routeLine = L.polyline([
-        [userPosition.lat, userPosition.lng],
-        [destLat, destLng]
-    ], {
-        color: '#e53935',
-        weight: 4,
-        opacity: 0.8,
-        dashArray: '10, 10',
-        lineCap: 'round'
-    }).addTo(map);
-
+    routeLine = L.polyline([[userPosition.lat, userPosition.lng], [destLat, destLng]], { color: '#e53935', weight: 4, opacity: 0.8, dashArray: '10, 10', lineCap: 'round' }).addTo(map);
     map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-
     const routeControl = document.getElementById('route-control');
     if (routeControl) {
         routeControl.classList.add('active');
-        routeControl.innerHTML = `
-            <div class="route-info-box">
-                <p class="route-info-title">Rota para ${name}</p>
-                <p class="route-info-detail">${distance < 1 ? (distance * 1000).toFixed(0) + ' m' : distance.toFixed(1) + ' km'} | ~${timeEstimate} min</p>
-                <a class="route-info-link" href="https://www.google.com/maps/dir/?api=1&origin=${userPosition.lat},${userPosition.lng}&destination=${destLat},${destLng}&travelmode=driving" target="_blank">Abrir no Google Maps</a>
-            </div>
-            <button class="btn-cancel-route" onclick="cancelRoute()">Cancelar Rota</button>
-        `;
+        routeControl.innerHTML = `<div class="route-info-box"><p class="route-info-title">Rota para ${name}</p><p class="route-info-detail">${distance < 1 ? (distance * 1000).toFixed(0) + ' m' : distance.toFixed(1) + ' km'} | ~${timeEstimate} min</p><a class="route-info-link" href="https://www.google.com/maps/dir/?api=1&origin=${userPosition.lat},${userPosition.lng}&destination=${destLat},${destLng}&travelmode=driving" target="_blank">Abrir no Google Maps</a></div><button class="btn-cancel-route" onclick="cancelRoute()">Cancelar Rota</button>`;
     }
 }
 
 function cancelRoute() {
-    if (routeLine) {
-        map.removeLayer(routeLine);
-        routeLine = null;
-    }
+    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
     const routeControl = document.getElementById('route-control');
-    if (routeControl) {
-        routeControl.classList.remove('active');
-        routeControl.innerHTML = '';
-    }
+    if (routeControl) { routeControl.classList.remove('active'); routeControl.innerHTML = ''; }
 }
 
 function calculateDistance(lat1, lng1, lat2, lng2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
+
+window.selectAndStartRoute = selectAndStartRoute;
+window.startRoute = startRoute;
+window.cancelRoute = cancelRoute;

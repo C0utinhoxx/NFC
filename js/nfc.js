@@ -8,20 +8,12 @@ function hideNFCTapOverlay() {
     if (overlay) overlay.classList.remove('active');
 }
 
-function simulateNFCTap() {
-    showNFCTapOverlay();
-    setTimeout(() => {
-        hideNFCTapOverlay();
-        state.batteryCurrent = Math.floor(Math.random() * 60) + 20;
-        showAuthScreen();
-    }, 2000);
-}
-
 function initNFCListener() {
     if ('NDEFReader' in window) {
         console.log('NFC API suportado');
     }
 }
 
-window.simulateNFCTap = simulateNFCTap;
+window.showNFCTapOverlay = showNFCTapOverlay;
+window.hideNFCTapOverlay = hideNFCTapOverlay;
 window.initNFCListener = initNFCListener;

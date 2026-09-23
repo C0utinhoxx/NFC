@@ -5,6 +5,8 @@ const MOCK_USERS = [
 ];
 
 const TARIFF = 1.90;
+const WALLET_BALANCE = 100.00;
+const BATTERY_CAPACITY = 50;
 
 const state = {
     currentUser: null,
@@ -13,10 +15,17 @@ const state = {
     chargeType: null,
     chargeValue: null,
     chargePercent: null,
+    chargeMode: null,
+    estimatedCost: null,
+    targetPercent: null,
     batteryCurrent: 30,
+    walletBalance: WALLET_BALANCE,
+    selectedCharger: null,
     seconds: 0,
+    kwh: 0,
     percent: 0,
     chargingInterval: null,
+    isFullChargeConfirmed: false,
 };
 
 function showScreen(id) {
@@ -53,15 +62,69 @@ function showRegisterScreen() {
 function showReadyScreen() {
     updateRouteSummary();
     updateBatteryDisplay();
+    updateWalletDisplay();
     showScreen('screen-ready');
 }
 
 function showChargeTypeScreen() {
     state.chargeType = null;
+    state.isFullChargeConfirmed = false;
+    state.chargePercent = null;
+    state.chargeValue = null;
+    state.chargeMode = null;
+    state.estimatedCost = null;
+    state.targetPercent = null;
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('type-detail').classList.remove('active');
     document.getElementById('btn-confirm-type').style.display = 'none';
     showScreen('screen-type');
+}
+
+function updateWalletDisplay() {
+    const walletEl = document.getElementById('wallet-balance');
+    if (walletEl) {
+        walletEl.textContent = 'R$ ' + state.walletBalance.toFixed(2).replace('.', ',');
+    }
+    const walletCard = document.getElementById('wallet-card');
+    if (walletCard) {
+        const canCharge = state.walletBalance > 0;
+        walletCard.style.borderColor = canCharge ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+    }
+}
+
+function updateRouteSummary() {
+    const chargerName = state.selectedCharger ? state.selectedCharger.name : 'Carregador';
+    const distance = state.selectedCharger ? state.selectedCharger.distance : 0;
+    const timeEst = Math.ceil(distance * 3);
+    document.getElementById('route-charger-name').textContent = chargerName;
+    document.getElementById('route-distance').textContent = distance < 1
+        ? (distance * 1000).toFixed(0) + ' m'
+        : distance.toFixed(1) + ' km';
+    document.getElementById('route-time').textContent = '~' + timeEst + ' min';
+    document.getElementById('route-tariff').textContent = 'R$ ' + TARIFF.toFixed(2) + '/kWh';
+}
+
+function updateBatteryDisplay() {
+    const current = state.batteryCurrent;
+    const batteryFill = document.getElementById('battery-fill');
+    const batteryText = document.getElementById('battery-text');
+    if (batteryFill) batteryFill.style.width = current + '%';
+    if (batteryText) batteryText.textContent = current + '%';
+}
+
+function resetChargeState() {
+    state.chargeType = null;
+    state.chargeValue = null;
+    state.chargePercent = null;
+    state.chargeMode = null;
+    state.estimatedCost = null;
+    state.targetPercent = null;
+    state.seconds = 0;
+    state.kwh = 0;
+    state.percent = 0;
+    if (state.chargingInterval) clearInterval(state.chargingInterval);
+    state.chargingInterval = null;
+    state.isFullChargeConfirmed = false;
 }
 
 async function mockValidateUser(username, password) {
@@ -142,43 +205,74 @@ async function handleRegister() {
     }
 }
 
-function updateRouteSummary() {
-    const chargerName = state.selectedCharger ? state.selectedCharger.name : 'Carregador';
-    const distance = state.selectedCharger ? state.selectedCharger.distance : 0;
-    const timeEst = Math.ceil(distance * 3);
-    document.getElementById('route-charger-name').textContent = chargerName;
-    document.getElementById('route-distance').textContent = distance < 1
-        ? (distance * 1000).toFixed(0) + ' m'
-        : distance.toFixed(1) + ' km';
-    document.getElementById('route-time').textContent = '~' + timeEst + ' min';
-    document.getElementById('route-tariff').textContent = 'R$ ' + TARIFF.toFixed(2) + '/kWh';
+function startCharging() {
+    showChargeTypeScreen();
 }
 
-function updateBatteryDisplay() {
-    const current = state.batteryCurrent;
-    document.getElementById('battery-fill').style.width = current + '%';
-    document.getElementById('battery-text').textContent = current + '%';
+function simulateNFCTap() {
+    showNFCTapOverlay();
+    setTimeout(() => {
+        hideNFCTapOverlay();
+        state.batteryCurrent = Math.floor(Math.random() * 60) + 20;
+        state.walletBalance = WALLET_BALANCE;
+        showAuthScreen();
+    }, 2000);
 }
 
-function resetChargeState() {
-    state.chargeType = null;
-    state.chargeValue = null;
-    state.chargePercent = null;
-    state.seconds = 0;
-    state.percent = 0;
-    if (state.chargingInterval) clearInterval(state.chargingInterval);
-    state.chargingInterval = null;
+function initBgParallax() {
+    const layer = document.getElementById('bg-parallax');
+    if (!layer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let raf = null;
+
+    function animate() {
+        currentX += (targetX - currentX) * 0.06;
+        currentY += (targetY - currentY) * 0.06;
+        layer.style.transform = 'rotateY(' + currentX.toFixed(3) + 'deg) rotateX(' + currentY.toFixed(3) + 'deg)';
+        if (Math.abs(targetX - currentX) > 0.01 || Math.abs(targetY - currentY) > 0.01) {
+            raf = requestAnimationFrame(animate);
+        } else {
+            raf = null;
+        }
+    }
+
+    function onMove(e) {
+        const x = (e.clientX / window.innerWidth - 0.5) * 2;
+        const y = (e.clientY / window.innerHeight - 0.5) * 2;
+        targetX = x * 6;
+        targetY = -y * 4;
+        if (!raf) raf = requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('deviceorientation', (e) => {
+        if (e.gamma == null || e.beta == null) return;
+        targetX = Math.max(-8, Math.min(8, e.gamma * 0.3));
+        targetY = Math.max(-6, Math.min(6, (e.beta - 45) * 0.2));
+        if (!raf) raf = requestAnimationFrame(animate);
+    }, { passive: true });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof initMap === 'function') initMap();
     if (typeof initNFCListener === 'function') initNFCListener();
+    initBgParallax();
+    updateWalletDisplay();
 });
 
 window.showScreen = showScreen;
 window.showAuthScreen = showAuthScreen;
 window.showRegisterScreen = showRegisterScreen;
+window.showChargeTypeScreen = showChargeTypeScreen;
+window.startCharging = startCharging;
+window.simulateNFCTap = simulateNFCTap;
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
 window.state = state;
 window.TARIFF = TARIFF;
+window.WALLET_BALANCE = WALLET_BALANCE;
+window.BATTERY_CAPACITY = BATTERY_CAPACITY;

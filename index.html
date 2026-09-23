@@ -14,6 +14,153 @@
 </head>
 <body>
 
+    <div class="bg-3d" aria-hidden="true">
+        <div class="bg-3d-parallax" id="bg-parallax">
+            <div class="bg-3d-scene">
+                <div class="bg-grid-plane"></div>
+                <div class="bg-horizon"></div>
+
+                <div class="bg-art">
+                    <svg class="ev-charger-art" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="postFront" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#232633"/>
+                                <stop offset="100%" stop-color="#12141c"/>
+                            </linearGradient>
+                            <linearGradient id="accentGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#ff6b6b"/>
+                                <stop offset="100%" stop-color="#e53935"/>
+                            </linearGradient>
+                            <linearGradient id="screenGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#0f1117"/>
+                                <stop offset="100%" stop-color="#1a1d27"/>
+                            </linearGradient>
+                            <linearGradient id="carBody" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#1d4ed8"/>
+                            </linearGradient>
+                            <filter id="glowRed" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="3" result="b"/>
+                                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                            <filter id="glowBlue" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="4" result="b"/>
+                                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                        </defs>
+
+                        <!-- floor glow -->
+                        <ellipse cx="240" cy="418" rx="150" ry="22" fill="rgba(229,57,53,0.12)"/>
+                        <ellipse cx="240" cy="418" rx="90" ry="12" fill="rgba(229,57,53,0.18)"/>
+
+                        <!-- charging station: side face -->
+                        <path d="M148 128 L172 114 L172 400 L148 414 Z" fill="#0b0c12" stroke="#2a2d3a" stroke-width="1"/>
+                        <!-- front face -->
+                        <rect x="172" y="114" width="96" height="300" rx="10" fill="url(#postFront)" stroke="#3a3d4a" stroke-width="1.5"/>
+                        <!-- top face -->
+                        <path d="M148 128 L172 114 L268 114 L244 128 Z" fill="#32354a" stroke="#3a3d4a" stroke-width="1"/>
+
+                        <!-- accent strip -->
+                        <rect x="180" y="122" width="8" height="284" rx="3" fill="url(#accentGrad)" opacity="0.9" filter="url(#glowRed)"/>
+
+                        <!-- display -->
+                        <rect x="196" y="140" width="64" height="78" rx="8" fill="url(#screenGrad)" stroke="#e53935" stroke-width="2"/>
+                        <polygon points="232 156 214 186 228 186 222 210 244 176 230 176" fill="#e53935" filter="url(#glowRed)"/>
+                        <text x="228" y="212" text-anchor="middle" fill="#10b981" font-size="11" font-family="monospace">READY</text>
+
+                        <!-- status LEDs -->
+                        <circle cx="208" cy="236" r="5" fill="#10b981" filter="url(#glowBlue)">
+                            <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="226" cy="236" r="5" fill="#3b82f6"/>
+                        <circle cx="244" cy="236" r="5" fill="#e53935"/>
+
+                        <!-- Type 2 socket -->
+                        <circle cx="228" cy="270" r="16" fill="#0a0b10" stroke="#3a3d4a" stroke-width="2"/>
+                        <circle cx="228" cy="270" r="10" fill="none" stroke="#e53935" stroke-width="1.5" opacity="0.7"/>
+                        <circle cx="228" cy="265" r="2.5" fill="#e53935"/>
+                        <circle cx="223" cy="274" r="2.5" fill="#e53935"/>
+                        <circle cx="233" cy="274" r="2.5" fill="#e53935"/>
+
+                        <!-- cable -->
+                        <path d="M268 270 C 330 275, 355 320, 340 365 C 325 405, 280 415, 255 395"
+                              fill="none" stroke="#0b0c12" stroke-width="12" stroke-linecap="round"/>
+                        <path d="M268 270 C 330 275, 355 320, 340 365 C 325 405, 280 415, 255 395"
+                              fill="none" stroke="#2a2d3a" stroke-width="7" stroke-linecap="round"/>
+                        <path d="M268 270 C 330 275, 355 320, 340 365 C 325 405, 280 415, 255 395"
+                              fill="none" stroke="#e53935" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 10" opacity="0.85">
+                            <animate attributeName="stroke-dashoffset" from="0" to="-32" dur="1.2s" repeatCount="indefinite"/>
+                        </path>
+
+                        <!-- plug head -->
+                        <g transform="translate(248 378) rotate(-25)">
+                            <rect x="0" y="0" width="40" height="30" rx="6" fill="#232633" stroke="#e53935" stroke-width="2"/>
+                            <circle cx="12" cy="15" r="3.5" fill="#e53935"/>
+                            <circle cx="24" cy="10" r="3.5" fill="#e53935"/>
+                            <circle cx="24" cy="20" r="3.5" fill="#e53935"/>
+                        </g>
+
+                        <!-- EV car silhouette (right side, 3D-ish) -->
+                        <g transform="translate(300 300)">
+                            <!-- shadow -->
+                            <ellipse cx="70" cy="110" rx="78" ry="10" fill="rgba(0,0,0,0.35)"/>
+                            <!-- body side -->
+                            <path d="M10 70 L25 45 Q35 30 55 28 L100 28 Q120 30 135 48 L155 70 L155 88 Q155 98 145 98 L20 98 Q10 98 10 88 Z"
+                                  fill="url(#carBody)" stroke="#60a5fa" stroke-width="1.5"/>
+                            <!-- roof / depth -->
+                            <path d="M40 45 L55 28 L100 28 L115 45 Z" fill="#2563eb" opacity="0.9"/>
+                            <!-- windows -->
+                            <path d="M48 45 L60 33 L85 33 L85 45 Z" fill="#0f172a" opacity="0.85"/>
+                            <path d="M90 33 L108 33 L118 45 L90 45 Z" fill="#0f172a" opacity="0.7"/>
+                            <!-- wheels -->
+                            <circle cx="45" cy="98" r="16" fill="#0a0b10" stroke="#3a3d4a" stroke-width="3"/>
+                            <circle cx="45" cy="98" r="7" fill="#3a3d4a"/>
+                            <circle cx="125" cy="98" r="16" fill="#0a0b10" stroke="#3a3d4a" stroke-width="3"/>
+                            <circle cx="125" cy="98" r="7" fill="#3a3d4a"/>
+                            <!-- charge port glow -->
+                            <circle cx="22" cy="72" r="7" fill="#10b981" filter="url(#glowBlue)" opacity="0.95">
+                                <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+                            </circle>
+                            <!-- headlight -->
+                            <path d="M150 70 L155 74 L155 82 L150 80 Z" fill="#fde68a" filter="url(#glowBlue)"/>
+                        </g>
+
+                        <!-- energy bolts floating near station -->
+                        <g filter="url(#glowRed)" opacity="0.9">
+                            <polygon points="130 160 118 188 130 188 126 214 146 180 134 180" fill="#e53935">
+                                <animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite"/>
+                            </polygon>
+                            <polygon points="300 140 290 164 300 164 296 186 314 156 304 156" fill="#3b82f6" filter="url(#glowBlue)">
+                                <animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/>
+                            </polygon>
+                            <polygon points="90 300 80 324 90 324 86 346 104 316 94 316" fill="#10b981">
+                                <animate attributeName="opacity" values="0.5;1;0.5" dur="2.1s" repeatCount="indefinite"/>
+                            </polygon>
+                        </g>
+
+                        <!-- floating kWh label -->
+                        <g transform="translate(175 90)">
+                            <rect x="0" y="0" width="90" height="28" rx="8" fill="rgba(20,22,30,0.9)" stroke="#2a2d3a"/>
+                            <text x="45" y="19" text-anchor="middle" fill="#EDEDEC" font-size="13" font-weight="700" font-family="sans-serif">AC 22kW</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="bg-ring bg-ring-1"></div>
+                <div class="bg-ring bg-ring-2"></div>
+                <div class="bg-orb bg-orb-1"></div>
+                <div class="bg-orb bg-orb-2"></div>
+                <div class="bg-orb bg-orb-3"></div>
+
+                <div class="bg-tagline">
+                    <span class="bg-tagline-kicker">GoodWe · Estações de Recarga</span>
+                    <h2>Carregamento elétrico<br/>com um toque NFC</h2>
+                    <p>Conectores Type 2 · Tarifa transparente · Carteira integrada</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="nfc-overlay" class="nfc-overlay">
         <div class="nfc-wave"></div>
         <p>Approve o NFC no celular</p>
@@ -132,9 +279,7 @@
                     <label>Senha</label>
                     <input type="password" id="auth-password" placeholder="Digite sua senha" autocomplete="current-password" />
                 </div>
-                <button type="submit" class="btn-primary">
-                    Entrar
-                </button>
+                <button type="submit" class="btn-primary">Entrar</button>
                 <div class="auth-loading" id="auth-loading">
                     <div class="spinner"></div>
                     Validando...
@@ -158,9 +303,7 @@
                     <label>Senha</label>
                     <input type="password" id="reg-password" placeholder="Crie uma senha" />
                 </div>
-                <button type="submit" class="btn-primary">
-                    Cadastrar
-                </button>
+                <button type="submit" class="btn-primary">Cadastrar</button>
                 <div class="auth-loading" id="register-loading">
                     <div class="spinner"></div>
                     Criando conta...
@@ -192,7 +335,7 @@
                 </div>
             </div>
             <div class="ready-title">Pronto para Carregar</div>
-            <div class="ready-subtitle">Autenticação confirmada. Selecione o tipo de carga e inicie o carregamento.</div>
+            <div class="ready-subtitle">Selecione o tipo de carga e inicie o carregamento.</div>
 
             <div class="route-summary">
                 <div class="route-summary-row">
@@ -224,7 +367,20 @@
                 <span class="battery-text" id="battery-text">30%</span>
             </div>
 
-            <button class="btn-primary" onclick="showChargeTypeScreen()" style="max-width: 360px;">
+            <div id="wallet-card">
+                <svg class="wallet-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"></path>
+                </svg>
+                <div class="wallet-info">
+                    <span class="wallet-label">Carteira</span>
+                    <span class="wallet-balance" id="wallet-balance">R$ 100.00</span>
+                </div>
+                <span class="wallet-tag">Saldo disponível</span>
+            </div>
+
+            <button class="btn-primary" id="btn-select-type" onclick="showChargeTypeScreen()" style="max-width: 360px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
@@ -244,7 +400,7 @@
             <div class="type-subtitle">Escolha como deseja carregar</div>
 
             <div class="type-cards">
-                <div class="type-card" data-type="partial-percent" onclick="selectChargeType('partial-percent')">
+                <div class="type-card" data-type="partial" onclick="selectChargeType('partial')">
                     <div class="type-card-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 20V10"></path>
@@ -254,21 +410,19 @@
                     </div>
                     <div class="type-card-text">
                         <h3>Carga Parcial</h3>
-                        <p>Escolha a porcentagem ou valor desejado</p>
+                        <p>Defina por porcentagem (%) ou valor em R$</p>
                     </div>
                 </div>
 
                 <div class="type-card" data-type="full" onclick="selectChargeType('full')">
                     <div class="type-card-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 20V10"></path>
-                            <path d="M18 20V4"></path>
-                            <path d="M6 20v-4"></path>
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                         </svg>
                     </div>
                     <div class="type-card-text">
                         <h3>Carga Total</h3>
-                        <p>Carrega do nível atual até 100%</p>
+                        <p>Carrega do nível atual até 100% com confirmação</p>
                     </div>
                 </div>
             </div>
@@ -307,6 +461,12 @@
                 <span id="charge-type-label">Carga</span>
             </div>
 
+            <div class="tariff-badge" id="charging-wallet" style="margin-top: 4px;">
+                R$ 100.00
+            </div>
+
+            <div id="charging-estimate" class="charging-estimate">Estimado: —</div>
+
             <div class="progress-section">
                 <div class="progress-percent"><span id="percent">0</span><span>%</span></div>
                 <div class="progress-bar-track">
@@ -329,11 +489,7 @@
                 </div>
             </div>
 
-            <div class="tariff-badge" style="margin-top: 8px;">
-                Tarifa fixa: R$ 1.90/kWh
-            </div>
-
-            <button class="btn-liberar" onclick="stopCharging()" style="margin-top: 20px;">
+            <button class="btn-liberar" id="btn-liberar" onclick="stopCharging()" style="margin-top: 16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                     <line x1="12" y1="18" x2="12.01" y2="18"></line>
@@ -387,8 +543,17 @@
                     <span class="receipt-label">Usuário</span>
                     <span class="receipt-value" id="final-user">-</span>
                 </div>
-                <div class="receipt-tariff">
-                    <div class="tariff-badge">Tarifa: R$ 1.90/kWh</div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Custo estimado</span>
+                    <span class="receipt-value" id="final-estimated">R$ 0,00</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Tarifa</span>
+                    <span class="receipt-value" id="final-tariff">Tarifa: R$ 1,90/kWh</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Saldo Restante</span>
+                    <span class="receipt-value" id="final-wallet" style="color: var(--success);">R$ 100.00</span>
                 </div>
                 <div class="receipt-row receipt-total">
                     <span class="receipt-label">Total</span>
@@ -411,14 +576,7 @@
 
     <script src="js/app.js"></script>
     <script src="js/map.js"></script>
-    <script src="js/auth.js"></script>
     <script src="js/charging.js"></script>
     <script src="js/nfc.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initMap === 'function') initMap();
-            if (typeof initNFCListener === 'function') initNFCListener();
-        });
-    </script>
 </body>
 </html>
