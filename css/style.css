@@ -422,6 +422,16 @@ body::after {
     animation: pulse-dot 2s ease-in-out infinite;
 }
 
+.status-badge.unavailable {
+    background: rgba(138, 143, 152, 0.15);
+    color: var(--text-muted);
+}
+
+.status-badge.unavailable .status-dot {
+    background: var(--text-muted);
+    animation: none;
+}
+
 @keyframes pulse-dot {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }

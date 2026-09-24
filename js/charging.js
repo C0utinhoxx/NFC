@@ -310,7 +310,7 @@ function confirmChargeType() {
     }
 }
 
-function startChargingWithType() {
+async function startChargingWithType() {
     const startPercent = state.batteryCurrent || 0;
     let targetPercent = state.targetPercent;
     let targetCost = state.estimatedCost;
@@ -347,6 +347,37 @@ function startChargingWithType() {
         alert('A bateria já está nesse nível.');
         return;
     }
+
+    if (!state.currentCharger) {
+        alert('Carregador indisponível no momento. Tente novamente em instantes.');
+        return;
+    }
+
+    const btnConfirm = document.getElementById('btn-confirm-type');
+    if (btnConfirm) btnConfirm.disabled = true;
+
+    let result;
+    try {
+        result = await GoodWeAPI.startCharging(state.currentCharger.id, {
+            energy_kwh: Number(totalKwh.toFixed(2)),
+            amount: Number(targetCost.toFixed(2)),
+            charge_type: state.chargeType,
+            target_percent: Math.round(targetPercent),
+        });
+    } catch (err) {
+        if (btnConfirm) btnConfirm.disabled = false;
+        alert('Não foi possível iniciar a recarga: ' + err.message);
+        return;
+    }
+
+    state.activeSession = result.session;
+    state.chargeStartBalance = result.user.balance + targetCost;
+    state.walletBalance = result.user.balance;
+    if (state.currentUser) {
+        state.currentUser.balance = result.user.balance;
+        state.currentUser.points = result.user.points;
+    }
+    state.currentCharger = result.charger;
 
     showScreen('screen-charging');
     state.seconds = 0;
@@ -386,22 +417,24 @@ function updateChargingWallet() {
     const walletEl = document.getElementById('charging-wallet');
     if (walletEl) {
         const spent = state.kwh * TARIFF;
-        const remaining = state.walletBalance - spent;
+        const baseline = state.chargeStartBalance != null ? state.chargeStartBalance : state.walletBalance;
+        const remaining = baseline - spent;
         walletEl.textContent = brl(Math.max(0, remaining));
         walletEl.style.color = remaining <= 0 ? '#ef4444' : 'var(--success)';
     }
 }
 
-function stopCharging() {
+async function stopCharging() {
     clearInterval(state.chargingInterval);
     state.chargingInterval = null;
 
-    const actualCost = (state.kwh || 0) * TARIFF;
-    state.walletBalance = Math.max(0, state.walletBalance - actualCost);
+    const session = state.activeSession;
+    const actualEnergy = session ? Number(session.energy_kwh) : (state.kwh || 0);
+    const actualCost = session ? Number(session.amount_charged) : (state.kwh || 0) * TARIFF;
 
     const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setText('final-time', formatTime(state.seconds));
-    setText('final-energy', (state.kwh || 0).toFixed(1) + ' kWh');
+    setText('final-energy', actualEnergy.toFixed(1) + ' kWh');
     setText('final-cost', brl(actualCost));
     setText('final-estimated', brl(state.estimatedCost || actualCost));
     setText('final-percent', Math.floor(state.percent) + '%');
@@ -410,6 +443,18 @@ function stopCharging() {
     setText('final-user', state.currentUser ? state.currentUser.name : 'Convidado');
     setText('final-wallet', brl(state.walletBalance));
     showScreen('screen-done');
+
+    if (state.currentCharger) {
+        try {
+            await GoodWeAPI.releaseCharger(state.currentCharger.id);
+        } catch (err) {
+            console.warn('Não foi possível liberar o carregador:', err.message);
+        }
+    }
+
+    state.activeSession = null;
+    if (typeof loadKioskCharger === 'function') loadKioskCharger();
+    if (typeof refreshWalletFromServer === 'function') refreshWalletFromServer();
 }
 
 function resetAll() {
@@ -425,10 +470,14 @@ function resetAll() {
     state.estimatedCost = null;
     state.targetPercent = null;
     state.isFullChargeConfirmed = false;
-    state.walletBalance = WALLET_BALANCE;
     state.batteryCurrent = 30;
     updateDisplay();
-    updateWalletDisplay();
+    if (GoodWeAPI.isAuthenticated() && typeof refreshWalletFromServer === 'function') {
+        refreshWalletFromServer();
+    } else {
+        state.walletBalance = WALLET_BALANCE;
+        updateWalletDisplay();
+    }
     const btn = document.getElementById('btn-confirm-type');
     if (btn) btn.style.display = 'none';
     showScreen('screen-charger');
