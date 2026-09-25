@@ -390,7 +390,9 @@ function simDeposit(amount, options) {
         status: method === 'wallet' ? 'approved' : 'pending',
     });
 
-    grantCashbackPoints(db, user, numericAmount, 'deposit_' + transaction.id);
+    if (method !== 'wallet') {
+        grantCashbackPoints(db, user, numericAmount, 'deposit_' + transaction.id);
+    }
 
     if (method !== 'wallet') {
         transaction.status = 'approved';
@@ -447,7 +449,9 @@ function simPayCharge(sessionId, options) {
         status: method === 'wallet' ? 'approved' : 'pending',
     });
 
-    grantCashbackPoints(db, user, amount, 'charge_' + session.id);
+    if (method !== 'wallet') {
+        grantCashbackPoints(db, user, amount, 'charge_' + session.id);
+    }
 
     session.status = 'completed';
     session.payment_method = method;

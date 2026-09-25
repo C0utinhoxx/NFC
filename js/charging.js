@@ -727,7 +727,10 @@ function resetAll() {
         updateWalletDisplay();
     }
     const btn = document.getElementById('btn-confirm-type');
-    if (btn) btn.style.display = 'none';
+    if (btn) {
+        btn.style.display = 'none';
+        btn.disabled = false;
+    }
     showScreen('screen-charger');
 }
 

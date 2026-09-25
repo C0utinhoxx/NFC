@@ -286,15 +286,23 @@ async function submitWalletDeposit() {
             syncPointsForCurrentUser(response.points);
         }
         const referenceId = response && (response.transaction_id || response.deposit_id || response.wallet_transaction_id || response.id);
-        const result = Loyalty.confirmDeposit(Loyalty.getUserId(), amount, referenceId);
-        state.points = Loyalty.getPoints();
-        if (state.currentUser) state.currentUser.points = state.points;
+        const result = paymentMethod === 'wallet'
+            ? { points: 0, created: false }
+            : Loyalty.confirmDeposit(Loyalty.getUserId(), amount, referenceId);
+        if (response && response.points != null) {
+            syncPointsForCurrentUser(response.points);
+        } else {
+            state.points = Loyalty.getPoints();
+            if (state.currentUser) state.currentUser.points = state.points;
+        }
         document.getElementById('deposit-amount').value = '';
         message.className = 'wallet-message';
         const paymentText = paymentMethod === 'wallet' ? 'saldo' : (paymentMethod === 'pix' ? 'PIX' : 'cartao');
-        message.textContent = result.created
-            ? 'Credito confirmado via ' + paymentText + '. Voce recebeu ' + formatPoints(result.points) + '.'
-            : 'Credito confirmado via ' + paymentText + '. Os pontos ja estavam registrados.';
+        message.textContent = paymentMethod === 'wallet'
+            ? 'Credito confirmado via ' + paymentText + '. Nenhum cashback para pagamento com carteira.'
+            : (result.created
+                ? 'Credito confirmado via ' + paymentText + '. Voce recebeu ' + formatPoints(result.points) + '.'
+                : 'Credito confirmado via ' + paymentText + '. Os pontos ja estavam registrados.');
         updateWalletDisplay();
         renderWalletScreen();
     } catch (err) {
