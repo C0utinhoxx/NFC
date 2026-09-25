@@ -114,7 +114,12 @@ body::after {
 .screen {
     display: none;
     flex-direction: column;
-    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     animation: fadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -2405,6 +2410,30 @@ body::after {
     .deposit-form .btn-primary {
         width: 100%;
         max-width: none;
+    }
+
+    .ready-content,
+    .type-content,
+    .charging-content,
+    .done-content,
+    .wallet-screen-content {
+        flex: 0 0 auto;
+        overflow: visible;
+    }
+
+    .main-map-container {
+        flex: 0 0 auto;
+        min-height: auto;
+        padding-bottom: 18px;
+    }
+
+    .map-wrapper {
+        flex: 0 0 52vh;
+        min-height: 300px;
+    }
+
+    .charger-card-wrapper {
+        flex: 0 0 auto;
     }
 }
 
