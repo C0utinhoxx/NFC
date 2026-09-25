@@ -5,7 +5,8 @@ const BATTERY_CAPACITY = 50;
 const state = {
     currentUser: null,
     isAuthenticated: false,
-    currentScreen: 'screen-charger',
+    authRedirect: null,
+    currentScreen: 'screen-auth',
     chargeType: null,
     chargeValue: null,
     chargePercent: null,
@@ -79,6 +80,10 @@ function initPaymentMethodSelectors() {
 }
 
 function showScreen(id) {
+    if (!state.isAuthenticated && id !== 'screen-auth') {
+        state.authRedirect = id;
+        id = 'screen-auth';
+    }
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screen = document.getElementById(id);
     if (screen) screen.classList.add('active');
@@ -86,6 +91,14 @@ function showScreen(id) {
     if (id === 'screen-charger' && typeof map !== 'undefined' && map) {
         setTimeout(() => map.invalidateSize(), 100);
     }
+}
+
+function resolveAuthDestination() {
+    const destination = state.authRedirect && document.getElementById(state.authRedirect)
+        ? state.authRedirect
+        : 'screen-charger';
+    state.authRedirect = null;
+    showScreen(destination);
 }
 
 function showAuthScreen() {
@@ -162,12 +175,9 @@ function formatDate(value) {
 }
 
 function showWalletScreen() {
-    if (!state.isAuthenticated) {
-        showAuthScreen();
-        return;
-    }
-    renderWalletScreen();
     showScreen('screen-wallet');
+    if (state.currentScreen !== 'screen-wallet') return;
+    renderWalletScreen();
 }
 
 function renderWalletScreen() {
@@ -412,7 +422,7 @@ async function handleLogin() {
         applyAuthenticatedUser(user);
         await refreshWalletFromServer();
         document.getElementById('auth-loading').classList.remove('active');
-        showReadyScreen();
+        resolveAuthDestination();
     } catch (err) {
         document.getElementById('auth-loading').classList.remove('active');
         document.getElementById('auth-error').textContent = err.message;
@@ -440,10 +450,10 @@ async function handleRegister() {
         applyAuthenticatedUser(user);
         await refreshWalletFromServer();
         document.getElementById('register-loading').classList.remove('active');
-        document.getElementById('reg-success').style.display = 'block';
-        setTimeout(() => {
-            showReadyScreen();
-        }, 1200);
+            document.getElementById('reg-success').style.display = 'block';
+            setTimeout(() => {
+                resolveAuthDestination();
+            }, 1200);
     } catch (err) {
         document.getElementById('register-loading').classList.remove('active');
         document.getElementById('register-error').textContent = err.message;
@@ -455,6 +465,7 @@ async function handleLogout() {
     await GoodWeAPI.logout();
     state.currentUser = null;
     state.isAuthenticated = false;
+    state.authRedirect = null;
     state.walletBalance = WALLET_BALANCE;
     state.points = 0;
     state.selectedCouponId = null;
@@ -462,6 +473,7 @@ async function handleLogout() {
     state.chargeFinalCost = null;
     state.chargeTotalKwh = null;
     resetAll();
+    showAuthScreen();
 }
 
 function startCharging() {
@@ -486,6 +498,7 @@ function simulateNFCTap() {
             }
         }
 
+        state.authRedirect = 'screen-ready';
         showAuthScreen();
     }, 2000);
 }
@@ -564,7 +577,22 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWalletDisplay();
     loadKioskCharger();
     setInterval(loadKioskCharger, 15000);
+    restoreSession();
 });
+
+async function restoreSession() {
+    if (!window.GoodWeAPI || !GoodWeAPI.isAuthenticated()) return;
+    try {
+        const user = await GoodWeAPI.me();
+        applyAuthenticatedUser(user);
+        await refreshWalletFromServer();
+        showScreen('screen-charger');
+    } catch (err) {
+        clearAuthToken();
+        state.currentUser = null;
+        state.isAuthenticated = false;
+    }
+}
 
 async function loadKioskCharger() {
     try {

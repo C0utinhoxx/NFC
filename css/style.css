@@ -533,7 +533,7 @@ body::after {
 
 /* NFC Section - centered */
 .nfc-section {
-    display: none;
+    display: flex;
     flex-direction: column;
     flex-direction: column;
     align-items: center;
@@ -576,9 +576,9 @@ body::after {
     height: 20px;
 }
 
-/* Iniciar Carregamento - centered */
+/* Iniciar Carregamento - centered (oculto: recarga apenas via NFC) */
 .btn-charge-center {
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     width: 100%;
