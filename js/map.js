@@ -8,12 +8,54 @@ let chargersById = {};
 
 const DEFAULT_CENTER = { lat: -23.5505, lng: -46.6333 };
 const PUBLIC_CHARGING_URL = 'https://overpass-api.de/api/interpreter';
+const PUBLIC_CHARGING_CACHE_KEY = 'goodwe_public_chargers_v1';
+const DEFAULT_PUBLIC_CHARGERS = [
+    ['osm-node-5649812371', 'Assai Vila Guilherme', -23.5220436, -46.6017625],
+    ['osm-node-6361077255', 'Mobike', -23.5720384, -46.6965196],
+    ['osm-node-7098550069', 'Eletroposto', -23.5015679, -46.733278],
+    ['osm-node-12190026409', 'ChargePoint', -23.524961, -46.6670982],
+    ['osm-node-12303216043', 'Eletroposto', -23.618914, -46.602196],
+    ['osm-node-12474286528', 'Eletroposto', -23.5258218, -46.7326867],
+    ['osm-node-12474324132', 'Eletroposto', -23.5179967, -46.7270876],
+    ['osm-node-13189098501', 'Phone charging station', -23.5249094, -46.6675212],
+    ['osm-node-13235612198', 'Eletroposto', -23.667906, -46.6780725],
+    ['osm-node-13408712444', 'Intelbras', -23.7043841, -46.5778873],
+    ['osm-node-13952255937', 'Troove Lopes | Robert Kennedy SBC', -23.7038527, -46.5766502],
+    ['osm-node-13988044273', 'Eletroposto Karg', -23.6933276, -46.5509385],
+    ['osm-way-371432992', 'Go Eletric', -23.5684088, -46.6117302],
+    ['osm-way-909127223', 'Enel', -23.5485132, -46.7359186],
+    ['osm-way-1349984736', 'AES Brasil', -23.6083194, -46.6964068],
+    ['osm-way-1415079809', 'Eletroposto', -23.5737453, -46.642004],
+].map(([id, name, lat, lng]) => ({
+    id,
+    name,
+    location: 'Local informado no OpenStreetMap',
+    power_kw: 7,
+    connector: 'Não informado',
+    lat,
+    lng,
+    status: 'available',
+    is_available: true,
+    vehicle_plate: null,
+    available_in_minutes: null,
+    estimated_price_per_hour: null,
+    source: 'openstreetmap',
+    source_label: 'OpenStreetMap',
+}));
 
 async function fetchPublicChargingStations(lat, lng) {
     const radius = 20000;
     const query = `[out:json][timeout:20];(node["amenity"="charging_station"](around:${radius},${lat},${lng});way["amenity"="charging_station"](around:${radius},${lat},${lng});relation["amenity"="charging_station"](around:${radius},${lat},${lng}););out center tags;`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    let cached = [];
+
+    try {
+        cached = JSON.parse(localStorage.getItem(PUBLIC_CHARGING_CACHE_KEY) || '[]');
+        if (!Array.isArray(cached)) cached = [];
+    } catch (_) {
+        cached = [];
+    }
 
     try {
         const response = await fetch(PUBLIC_CHARGING_URL + '?data=' + encodeURIComponent(query), {
@@ -21,7 +63,7 @@ async function fetchPublicChargingStations(lat, lng) {
         });
         if (!response.ok) throw new Error('Overpass respondeu ' + response.status);
         const data = await response.json();
-        return (data.elements || []).map(element => {
+        const chargers = (data.elements || []).map(element => {
             const tags = element.tags || {};
             const point = element.center || { lat: element.lat, lng: element.lon };
             const name = tags.name || tags.brand || 'Eletroposto';
@@ -46,6 +88,11 @@ async function fetchPublicChargingStations(lat, lng) {
                 source_label: 'OpenStreetMap',
             };
         }).filter(charger => charger.lat != null && charger.lng != null);
+        localStorage.setItem(PUBLIC_CHARGING_CACHE_KEY, JSON.stringify(chargers));
+        return chargers;
+    } catch (_) {
+        const fallback = cached.length ? cached : DEFAULT_PUBLIC_CHARGERS;
+        return fallback.filter(charger => calculateDistance(lat, lng, charger.lat, charger.lng) <= radius);
     } finally {
         clearTimeout(timeout);
     }
@@ -97,31 +144,26 @@ async function loadNearbyChargers(lat, lng) {
     if (loadingEl) loadingEl.classList.add('active');
     if (countEl) countEl.classList.remove('active');
 
+    const prepareChargers = chargers => chargers
+        .filter(charger => charger.lat != null && charger.lng != null)
+        .map(charger => ({ ...charger, _dist: calculateDistance(lat, lng, charger.lat, charger.lng) }))
+        .sort((a, b) => a._dist - b._dist);
+
+    let goodweChargers = [];
     try {
-        const [goodweResult, publicResult] = await Promise.allSettled([
-            GoodWeAPI.listChargers(),
-            fetchPublicChargingStations(lat, lng),
-        ]);
-        const goodweChargers = goodweResult.status === 'fulfilled'
-            ? goodweResult.value.map(charger => ({ ...charger, source: 'goodwe', source_label: 'GoodWe' }))
-            : [];
-        const publicChargers = publicResult.status === 'fulfilled' ? publicResult.value : [];
-
-        if (publicResult.status === 'rejected') {
-            console.warn('Não foi possível buscar eletropostos públicos:', publicResult.reason.message);
-        }
-
-        const chargers = goodweChargers.concat(publicChargers);
-        const withCoords = chargers.filter(c => c.lat != null && c.lng != null);
-        const nearby = withCoords
-            .map(charger => ({ ...charger, _dist: calculateDistance(lat, lng, charger.lat, charger.lng) }))
-            .sort((a, b) => a._dist - b._dist);
-        renderStations(nearby);
+        goodweChargers = (await GoodWeAPI.listChargers()).map(charger => ({ ...charger, source: 'goodwe', source_label: 'GoodWe' }));
+        renderStations(prepareChargers(goodweChargers));
     } catch (err) {
         console.warn('Não foi possível carregar carregadores da rede GoodWe:', err.message);
-        if (loadingEl) loadingEl.classList.remove('active');
-        if (countEl) {
-            countEl.innerHTML = 'Não foi possível carregar os carregadores.';
+    }
+
+    try {
+        const publicChargers = await fetchPublicChargingStations(lat, lng);
+        renderStations(prepareChargers(goodweChargers.concat(publicChargers)));
+    } catch (err) {
+        console.warn('Não foi possível buscar eletropostos públicos:', err.message);
+        if (countEl && goodweChargers.length === 0) {
+            countEl.innerHTML = 'Não foi possível carregar os eletropostos.';
             countEl.classList.add('active');
         }
     }

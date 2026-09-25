@@ -6,7 +6,7 @@ function brl(n) {
     return 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',');
 }
 
-function isSimulationMode() {
+function isChargingSimulationMode() {
     return window.GoodWeAPI && typeof window.GoodWeAPI.isSimulationMode === 'function' && window.GoodWeAPI.isSimulationMode();
 }
 
@@ -97,8 +97,8 @@ function computeFullEstimate() {
 function estimateHtml(est, opts) {
     opts = opts || {};
     const pricing = getChargePricing(est);
-    const insufficient = !isSimulationMode() && pricing.final > state.walletBalance + 0.001;
-    const postChargeNotice = isSimulationMode()
+    const insufficient = !isChargingSimulationMode() && pricing.final > state.walletBalance + 0.001;
+    const postChargeNotice = isChargingSimulationMode()
         ? `<div class="estimate-note">Pagamento definido no final da recarga.</div>`
         : '';
     return `
@@ -226,7 +226,7 @@ function selectChargeType(type) {
              const box = document.getElementById('partial-estimate');
              if (!box) return;
              const pricing = getChargePricing(est);
-              const insufficient = !isSimulationMode() && pricing.final > state.walletBalance + 0.001;
+              const insufficient = !isChargingSimulationMode() && pricing.final > state.walletBalance + 0.001;
               box.innerHTML = `
                   <div class="estimate-row">
                       <span>Energia estimada</span>
@@ -245,7 +245,7 @@ function selectChargeType(type) {
                      <strong>${brl(Math.max(0, state.walletBalance - pricing.final))}</strong>
                   </div>
                   ${note ? `<div class="estimate-note">${note}</div>` : ''}
-                  ${isSimulationMode() ? `<div class="estimate-note">Pagamento definido no final da recarga.</div>` : ''}
+                  ${isChargingSimulationMode() ? `<div class="estimate-note">Pagamento definido no final da recarga.</div>` : ''}
                   ${insufficient ? `<div class="estimate-warn">Saldo insuficiente. Faltam ${brl(pricing.final - state.walletBalance)}.</div>` : ''}
               `;
               renderCouponSelector(est);
@@ -340,7 +340,7 @@ function confirmChargeType() {
         }
          const est = computeFullEstimate();
          const pricing = getChargePricing(est);
-         if (!isSimulationMode() && pricing.final > state.walletBalance + 0.001) {
+         if (!isChargingSimulationMode() && pricing.final > state.walletBalance + 0.001) {
               alert('Saldo insuficiente para carga total.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
               return;
           }
@@ -375,7 +375,7 @@ function confirmChargeType() {
             return;
         }
          const pricing = getChargePricing(est);
-         if (!isSimulationMode() && pricing.final > state.walletBalance + 0.001) {
+         if (!isChargingSimulationMode() && pricing.final > state.walletBalance + 0.001) {
               alert('Saldo insuficiente.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
               return;
           }
@@ -420,7 +420,7 @@ async function startChargingWithType() {
          return;
      }
      const pricing = getChargePricing({ cost: targetCost });
-     if (!isSimulationMode() && pricing.final > state.walletBalance + 0.001) {
+     if (!isChargingSimulationMode() && pricing.final > state.walletBalance + 0.001) {
           alert('Saldo insuficiente para iniciar o carregamento.');
           return;
       }
@@ -432,10 +432,13 @@ async function startChargingWithType() {
      state.chargeTotalKwh = totalKwh;
      targetCost = pricing.final;
 
+     if (!state.currentCharger && typeof loadKioskCharger === 'function') {
+         await loadKioskCharger();
+     }
      if (!state.currentCharger) {
-        alert('Carregador indisponível no momento. Tente novamente em instantes.');
-        return;
-    }
+         alert('Carregador indisponível no momento. Tente novamente em instantes.');
+         return;
+     }
 
     const btnConfirm = document.getElementById('btn-confirm-type');
     if (btnConfirm) btnConfirm.disabled = true;
@@ -465,7 +468,7 @@ async function startChargingWithType() {
      }
      state.points = Loyalty.getPoints();
      state.activeSession = result.session;
-     state.chargeStartBalance = isSimulationMode()
+     state.chargeStartBalance = isChargingSimulationMode()
          ? Number(result.user.balance || state.walletBalance)
          : Number(result.user.balance || 0) + targetCost;
      state.walletBalance = result.user.balance;
@@ -490,7 +493,7 @@ async function startChargingWithType() {
         estimateEl.textContent = 'Estimado: ' + brl(targetCost) + ' · ' + totalKwh.toFixed(1) + ' kWh';
     }
 
-    const kwhPerTick = Math.max(totalKwh / 100, 0.01);
+     const kwhPerTick = Math.max(totalKwh / 16, 0.01);
 
     state.chargingInterval = setInterval(() => {
         state.seconds++;
@@ -519,7 +522,7 @@ function currentChargeCost() {
 function updateChargingWallet() {
     const walletEl = document.getElementById('charging-wallet');
     if (walletEl) {
-        if (isSimulationMode()) {
+        if (isChargingSimulationMode()) {
             walletEl.textContent = 'Pagar ao final: ' + brl(state.chargeFinalCost || state.estimatedCost || 0);
             walletEl.style.color = '#60a5fa';
             return;
@@ -542,7 +545,7 @@ function renderChargePaymentPanel() {
 
     if (!panel || !options || !message || !payButton) return;
 
-    const canShow = isSimulationMode() && state.activeSession && state.activeSession.status !== 'completed';
+    const canShow = isChargingSimulationMode() && state.activeSession && state.activeSession.status !== 'completed';
     panel.style.display = canShow ? 'block' : 'none';
     if (newChargeButton) newChargeButton.style.display = canShow ? 'none' : '';
     if (!canShow) return;
