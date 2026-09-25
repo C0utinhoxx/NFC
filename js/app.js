@@ -19,6 +19,7 @@ const state = {
     chargeDiscount: 0,
     chargeFinalCost: null,
     chargeTotalKwh: null,
+    chargePaymentMethod: 'wallet',
     selectedCharger: null,
     currentCharger: null,
     activeSession: null,
@@ -28,7 +29,54 @@ const state = {
     percent: 0,
     chargingInterval: null,
     isFullChargeConfirmed: false,
+    apiMode: 'unknown',
 };
+
+function selectedRadioValue(name, fallback) {
+    const selected = document.querySelector('input[name="' + name + '"]:checked');
+    return selected ? selected.value : fallback;
+}
+
+function syncPointsForCurrentUser(points) {
+    if (!state.currentUser) return;
+    Loyalty.setPoints(state.currentUser.id, Number(points || 0));
+    state.points = Number(points || 0);
+    state.currentUser.points = state.points;
+}
+
+function updateApiEnvironmentBadge(detail) {
+    const text = document.getElementById('api-environment-text');
+    const dot = document.getElementById('api-environment-dot');
+    if (!text || !dot) return;
+
+    const mode = detail && detail.mode ? detail.mode : 'unknown';
+    if (mode === 'real') {
+        text.textContent = 'Servidor Online';
+        dot.className = 'api-env-dot real';
+    } else if (mode === 'simulation') {
+        text.textContent = 'Modo Simulacao';
+        dot.className = 'api-env-dot simulation';
+    } else {
+        text.textContent = 'Conectando...';
+        dot.className = 'api-env-dot unknown';
+    }
+    state.apiMode = mode;
+}
+
+function initPaymentMethodSelectors() {
+    const paymentGroups = ['deposit-payment-method', 'charge-payment-method'];
+    paymentGroups.forEach(groupName => {
+        document.querySelectorAll('input[name="' + groupName + '"]').forEach(input => {
+            input.addEventListener('change', () => {
+                document.querySelectorAll('input[name="' + groupName + '"]').forEach(item => {
+                    const wrapper = item.closest('.payment-method-option');
+                    if (!wrapper) return;
+                    wrapper.classList.toggle('selected', item.checked);
+                });
+            });
+        });
+    });
+}
 
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -81,6 +129,7 @@ function showChargeTypeScreen() {
     state.chargeDiscount = 0;
     state.chargeFinalCost = null;
     state.chargeTotalKwh = null;
+    state.chargePaymentMethod = 'wallet';
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('type-detail').classList.remove('active');
     document.getElementById('btn-confirm-type').style.display = 'none';
@@ -226,21 +275,26 @@ async function submitWalletDeposit() {
         return;
     }
     const submit = document.getElementById('deposit-submit');
+    const paymentMethod = selectedRadioValue('deposit-payment-method', 'wallet');
     submit.disabled = true;
     message.className = 'wallet-message';
-    message.textContent = 'Confirmando crédito...';
+    message.textContent = 'Confirmando credito...';
     try {
-        const response = await GoodWeAPI.deposit(amount);
+        const response = await GoodWeAPI.deposit(amount, { payment_method: paymentMethod });
         state.walletBalance = walletBalanceFromResponse(response, state.walletBalance + amount);
+        if (response && response.points != null) {
+            syncPointsForCurrentUser(response.points);
+        }
         const referenceId = response && (response.transaction_id || response.deposit_id || response.wallet_transaction_id || response.id);
         const result = Loyalty.confirmDeposit(Loyalty.getUserId(), amount, referenceId);
         state.points = Loyalty.getPoints();
         if (state.currentUser) state.currentUser.points = state.points;
         document.getElementById('deposit-amount').value = '';
         message.className = 'wallet-message';
+        const paymentText = paymentMethod === 'wallet' ? 'saldo' : (paymentMethod === 'pix' ? 'PIX' : 'cartao');
         message.textContent = result.created
-            ? 'Crédito confirmado. Você recebeu ' + formatPoints(result.points) + '.'
-            : 'Crédito confirmado. Os pontos desta transação já estavam registrados.';
+            ? 'Credito confirmado via ' + paymentText + '. Voce recebeu ' + formatPoints(result.points) + '.'
+            : 'Credito confirmado via ' + paymentText + '. Os pontos ja estavam registrados.';
         updateWalletDisplay();
         renderWalletScreen();
     } catch (err) {
@@ -292,6 +346,7 @@ function resetChargeState() {
     state.chargeDiscount = 0;
     state.chargeFinalCost = null;
     state.chargeTotalKwh = null;
+    state.chargePaymentMethod = 'wallet';
     state.seconds = 0;
     state.kwh = 0;
     state.percent = 0;
@@ -304,15 +359,23 @@ function applyAuthenticatedUser(user) {
     state.currentUser = user;
     state.isAuthenticated = true;
     state.walletBalance = Number(user.balance || 0);
-    state.points = Loyalty.getPoints(Loyalty.getUserId());
-    if (state.currentUser) state.currentUser.points = state.points;
+    if (user.points != null) {
+        syncPointsForCurrentUser(user.points);
+    } else {
+        state.points = Loyalty.getPoints(Loyalty.getUserId());
+        if (state.currentUser) state.currentUser.points = state.points;
+    }
 }
 
 async function refreshWalletFromServer() {
     try {
         const wallet = await GoodWeAPI.getWallet();
         state.walletBalance = Number(wallet.balance || 0);
-        state.points = Loyalty.getPoints();
+        if (wallet.points != null) {
+            syncPointsForCurrentUser(wallet.points);
+        } else {
+            state.points = Loyalty.getPoints();
+        }
         if (state.currentUser) {
             state.currentUser.balance = state.walletBalance;
             state.currentUser.points = state.points;
@@ -339,6 +402,7 @@ async function handleLogin() {
     try {
         const user = await GoodWeAPI.login(email, password);
         applyAuthenticatedUser(user);
+        await refreshWalletFromServer();
         document.getElementById('auth-loading').classList.remove('active');
         showReadyScreen();
     } catch (err) {
@@ -366,6 +430,7 @@ async function handleRegister() {
     try {
         const user = await GoodWeAPI.register(name, email, phone, password);
         applyAuthenticatedUser(user);
+        await refreshWalletFromServer();
         document.getElementById('register-loading').classList.remove('active');
         document.getElementById('reg-success').style.display = 'block';
         setTimeout(() => {
@@ -405,6 +470,7 @@ function simulateNFCTap() {
             try {
                 const user = await GoodWeAPI.me();
                 applyAuthenticatedUser(user);
+                await refreshWalletFromServer();
                 showReadyScreen();
                 return;
             } catch (err) {
@@ -455,6 +521,11 @@ function initBgParallax() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initPaymentMethodSelectors();
+    if (window.GoodWeAPI && typeof window.GoodWeAPI.getEnvironmentLabel === 'function') {
+        updateApiEnvironmentBadge({ mode: window.GoodWeAPI.isSimulationMode() ? 'simulation' : 'unknown' });
+    }
+    window.addEventListener('goodwe-api-mode', event => updateApiEnvironmentBadge(event.detail || {}));
     if (typeof initMap === 'function') initMap();
     if (typeof initNFCListener === 'function') initNFCListener();
     initBgParallax();

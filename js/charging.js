@@ -6,6 +6,16 @@ function brl(n) {
     return 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',');
 }
 
+function isSimulationMode() {
+    return window.GoodWeAPI && typeof window.GoodWeAPI.isSimulationMode === 'function' && window.GoodWeAPI.isSimulationMode();
+}
+
+function paymentMethodLabel(method) {
+    if (method === 'pix') return 'PIX';
+    if (method === 'card') return 'Cartao';
+    return 'Carteira';
+}
+
 function getChargePricing(estimate) {
     const original = Math.max(0, Number(estimate && estimate.cost || 0));
     const coupon = state.selectedCouponId
@@ -87,7 +97,10 @@ function computeFullEstimate() {
 function estimateHtml(est, opts) {
     opts = opts || {};
     const pricing = getChargePricing(est);
-    const insufficient = pricing.final > state.walletBalance + 0.001;
+    const insufficient = !isSimulationMode() && pricing.final > state.walletBalance + 0.001;
+    const postChargeNotice = isSimulationMode()
+        ? `<div class="estimate-note">Pagamento definido no final da recarga.</div>`
+        : '';
     return `
         <div class="estimate-box">
             ${opts.title ? `<div class="estimate-title">${opts.title}</div>` : ''}
@@ -104,6 +117,7 @@ function estimateHtml(est, opts) {
                 <strong>${brl(state.walletBalance)}</strong>
             </div>
             ${opts.extra || ''}
+            ${postChargeNotice}
             ${insufficient ? `<div class="estimate-warn">Saldo insuficiente para esta carga. Faltam ${brl(pricing.final - state.walletBalance)}.</div>` : ''}
         </div>
     `;
@@ -212,10 +226,10 @@ function selectChargeType(type) {
              const box = document.getElementById('partial-estimate');
              if (!box) return;
              const pricing = getChargePricing(est);
-             const insufficient = pricing.final > state.walletBalance + 0.001;
-             box.innerHTML = `
-                 <div class="estimate-row">
-                     <span>Energia estimada</span>
+              const insufficient = !isSimulationMode() && pricing.final > state.walletBalance + 0.001;
+              box.innerHTML = `
+                  <div class="estimate-row">
+                      <span>Energia estimada</span>
                      <strong>${est.kwh.toFixed(1)} kWh</strong>
                  </div>
                  <div class="estimate-row">
@@ -229,11 +243,12 @@ function selectChargeType(type) {
                  <div class="estimate-row">
                      <span>Saldo após</span>
                      <strong>${brl(Math.max(0, state.walletBalance - pricing.final))}</strong>
-                 </div>
-                 ${note ? `<div class="estimate-note">${note}</div>` : ''}
-                 ${insufficient ? `<div class="estimate-warn">Saldo insuficiente. Faltam ${brl(pricing.final - state.walletBalance)}.</div>` : ''}
-             `;
-             renderCouponSelector(est);
+                  </div>
+                  ${note ? `<div class="estimate-note">${note}</div>` : ''}
+                  ${isSimulationMode() ? `<div class="estimate-note">Pagamento definido no final da recarga.</div>` : ''}
+                  ${insufficient ? `<div class="estimate-warn">Saldo insuficiente. Faltam ${brl(pricing.final - state.walletBalance)}.</div>` : ''}
+              `;
+              renderCouponSelector(est);
          }
 
         function clearPartial() {
@@ -325,10 +340,10 @@ function confirmChargeType() {
         }
          const est = computeFullEstimate();
          const pricing = getChargePricing(est);
-         if (pricing.final > state.walletBalance + 0.001) {
-             alert('Saldo insuficiente para carga total.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
-             return;
-         }
+         if (!isSimulationMode() && pricing.final > state.walletBalance + 0.001) {
+              alert('Saldo insuficiente para carga total.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
+              return;
+          }
          state.estimatedCost = est.cost;
          state.chargeDiscount = pricing.discount;
          state.chargeFinalCost = pricing.final;
@@ -360,10 +375,10 @@ function confirmChargeType() {
             return;
         }
          const pricing = getChargePricing(est);
-         if (pricing.final > state.walletBalance + 0.001) {
-             alert('Saldo insuficiente.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
-             return;
-         }
+         if (!isSimulationMode() && pricing.final > state.walletBalance + 0.001) {
+              alert('Saldo insuficiente.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
+              return;
+          }
 
          state.chargeDiscount = pricing.discount;
          state.chargeFinalCost = pricing.final;
@@ -405,10 +420,10 @@ async function startChargingWithType() {
          return;
      }
      const pricing = getChargePricing({ cost: targetCost });
-     if (pricing.final > state.walletBalance + 0.001) {
-         alert('Saldo insuficiente para iniciar o carregamento.');
-         return;
-     }
+     if (!isSimulationMode() && pricing.final > state.walletBalance + 0.001) {
+          alert('Saldo insuficiente para iniciar o carregamento.');
+          return;
+      }
 
      state.targetPercent = targetPercent;
      state.estimatedCost = targetCost;
@@ -450,8 +465,10 @@ async function startChargingWithType() {
      }
      state.points = Loyalty.getPoints();
      state.activeSession = result.session;
-    state.chargeStartBalance = result.user.balance + targetCost;
-    state.walletBalance = result.user.balance;
+     state.chargeStartBalance = isSimulationMode()
+         ? Number(result.user.balance || state.walletBalance)
+         : Number(result.user.balance || 0) + targetCost;
+     state.walletBalance = result.user.balance;
     if (state.currentUser) {
         state.currentUser.balance = result.user.balance;
          state.currentUser.points = state.points;
@@ -502,11 +519,116 @@ function currentChargeCost() {
 function updateChargingWallet() {
     const walletEl = document.getElementById('charging-wallet');
     if (walletEl) {
+        if (isSimulationMode()) {
+            walletEl.textContent = 'Pagar ao final: ' + brl(state.chargeFinalCost || state.estimatedCost || 0);
+            walletEl.style.color = '#60a5fa';
+            return;
+        }
+
         const spent = currentChargeCost();
         const baseline = state.chargeStartBalance != null ? state.chargeStartBalance : state.walletBalance;
         const remaining = baseline - spent;
         walletEl.textContent = brl(Math.max(0, remaining));
         walletEl.style.color = remaining <= 0 ? '#ef4444' : 'var(--success)';
+    }
+}
+
+function renderChargePaymentPanel() {
+    const panel = document.getElementById('charge-payment-panel');
+    const options = document.getElementById('charge-payment-options');
+    const message = document.getElementById('charge-payment-message');
+    const payButton = document.getElementById('btn-charge-pay');
+    const newChargeButton = document.getElementById('btn-new-charge');
+
+    if (!panel || !options || !message || !payButton) return;
+
+    const canShow = isSimulationMode() && state.activeSession && state.activeSession.status !== 'completed';
+    panel.style.display = canShow ? 'block' : 'none';
+    if (newChargeButton) newChargeButton.style.display = canShow ? 'none' : '';
+    if (!canShow) return;
+
+    const currentMethod = state.chargePaymentMethod || 'wallet';
+    options.innerHTML = [
+        { value: 'wallet', label: 'Carteira' },
+        { value: 'pix', label: 'PIX (simulado)' },
+        { value: 'card', label: 'Cartao (simulado)' },
+    ].map(item => `
+        <label class="payment-method-option ${currentMethod === item.value ? 'selected' : ''}">
+            <input type="radio" name="charge-payment-method" value="${item.value}" ${currentMethod === item.value ? 'checked' : ''} />
+            <span>${item.label}</span>
+        </label>
+    `).join('');
+
+    message.className = 'wallet-message';
+    message.textContent = 'Total a pagar: ' + brl(state.chargeFinalCost || state.estimatedCost || 0);
+
+    options.querySelectorAll('input[name="charge-payment-method"]').forEach(input => {
+        input.addEventListener('change', () => {
+            state.chargePaymentMethod = input.value;
+            options.querySelectorAll('.payment-method-option').forEach(option => {
+                option.classList.toggle('selected', option.contains(input) && input.checked);
+            });
+        });
+    });
+}
+
+async function payChargeSession() {
+    if (!state.activeSession || !state.activeSession.id) {
+        alert('Nao ha sessao pendente para pagamento.');
+        return;
+    }
+
+    const panelMessage = document.getElementById('charge-payment-message');
+    const payButton = document.getElementById('btn-charge-pay');
+    const paymentMethod = (state.chargePaymentMethod || (document.querySelector('input[name="charge-payment-method"]:checked') || {}).value || 'wallet');
+
+    try {
+        if (payButton) payButton.disabled = true;
+        if (panelMessage) {
+            panelMessage.className = 'wallet-message';
+            panelMessage.textContent = 'Processando pagamento...';
+        }
+
+        const result = await GoodWeAPI.payCharge(state.activeSession.id, { payment_method: paymentMethod });
+        state.walletBalance = Number(result.user.balance || state.walletBalance);
+        if (result.user.points != null) {
+            state.points = Number(result.user.points || 0);
+            if (state.currentUser) state.currentUser.points = state.points;
+            if (window.Loyalty && state.currentUser) {
+                Loyalty.setPoints(state.currentUser.id, state.points);
+            }
+        }
+        if (state.currentUser) state.currentUser.balance = state.walletBalance;
+
+        state.activeSession.status = result.session.status;
+        state.activeSession.payment_method = result.session.payment_method;
+
+        const paymentEl = document.getElementById('final-payment-method');
+        if (paymentEl) paymentEl.textContent = paymentMethodLabel(result.session.payment_method || paymentMethod);
+        const walletEl = document.getElementById('final-wallet');
+        if (walletEl) walletEl.textContent = brl(state.walletBalance);
+
+        if (panelMessage) {
+            panelMessage.className = 'wallet-message';
+            panelMessage.textContent = 'Pagamento aprovado com sucesso.';
+        }
+
+        renderChargePaymentPanel();
+        if (typeof updateWalletDisplay === 'function') updateWalletDisplay();
+        if (typeof refreshWalletFromServer === 'function') refreshWalletFromServer();
+
+        setTimeout(() => {
+            state.activeSession = null;
+            const newChargeButton = document.getElementById('btn-new-charge');
+            if (newChargeButton) newChargeButton.style.display = '';
+        }, 1000);
+    } catch (err) {
+        if (panelMessage) {
+            panelMessage.className = 'wallet-message error';
+            panelMessage.textContent = err.message;
+        }
+    } finally {
+        if (payButton) payButton.disabled = false;
     }
 }
 
@@ -531,7 +653,9 @@ async function stopCharging() {
     setText('final-type', getChargeTypeName(state.chargeType));
     setText('final-user', state.currentUser ? state.currentUser.name : 'Convidado');
     setText('final-wallet', brl(state.walletBalance));
+    setText('final-payment-method', paymentMethodLabel(session && session.payment_method ? session.payment_method : 'wallet'));
     showScreen('screen-done');
+    renderChargePaymentPanel();
 
     if (state.currentCharger) {
         try {
@@ -541,7 +665,6 @@ async function stopCharging() {
         }
     }
 
-    state.activeSession = null;
     if (typeof loadKioskCharger === 'function') loadKioskCharger();
     if (typeof refreshWalletFromServer === 'function') refreshWalletFromServer();
 }
@@ -563,7 +686,13 @@ function resetAll() {
      state.chargeFinalCost = null;
      state.chargeTotalKwh = null;
      state.isFullChargeConfirmed = false;
+     state.chargePaymentMethod = 'wallet';
     state.batteryCurrent = 30;
+    state.activeSession = null;
+    const paymentPanel = document.getElementById('charge-payment-panel');
+    if (paymentPanel) paymentPanel.style.display = 'none';
+    const newChargeButton = document.getElementById('btn-new-charge');
+    if (newChargeButton) newChargeButton.style.display = '';
     updateDisplay();
     if (GoodWeAPI.isAuthenticated() && typeof refreshWalletFromServer === 'function') {
         refreshWalletFromServer();

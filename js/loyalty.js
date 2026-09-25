@@ -37,6 +37,14 @@ const Loyalty = {
         return Number(this.getData(userId).points || 0);
     },
 
+    setPoints(userId, points) {
+        const store = this.getStore();
+        const id = String(userId || this.getUserId());
+        if (!store[id]) store[id] = { points: 0, coupons: [], point_transactions: [] };
+        store[id].points = Math.max(0, Number(points || 0));
+        this.saveStore(store);
+    },
+
     getAvailableCoupons(userId) {
         return this.getData(userId).coupons.filter(coupon => coupon.status === 'available');
     },
