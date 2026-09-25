@@ -480,27 +480,24 @@ function startCharging() {
     showChargeTypeScreen();
 }
 
-function simulateNFCTap() {
-    showNFCTapOverlay();
-    setTimeout(async () => {
-        hideNFCTapOverlay();
-        state.batteryCurrent = 30;
+async function simulateNFCTap() {
+    state.batteryCurrent = 30;
 
-        if (GoodWeAPI.isAuthenticated()) {
-            try {
-                const user = await GoodWeAPI.me();
-                applyAuthenticatedUser(user);
-                await refreshWalletFromServer();
-                showReadyScreen();
-                return;
-            } catch (err) {
-                clearAuthToken();
-            }
+    if (GoodWeAPI.isAuthenticated()) {
+        try {
+            const user = await GoodWeAPI.me();
+            applyAuthenticatedUser(user);
+            await refreshWalletFromServer();
+            showReadyScreen();
+            return;
+        } catch (err) {
+            clearAuthToken();
+            state.isAuthenticated = false;
         }
+    }
 
-        state.authRedirect = 'screen-ready';
-        showAuthScreen();
-    }, 2000);
+    state.authRedirect = 'screen-ready';
+    showAuthScreen();
 }
 
 function initBgEmbers() {
@@ -577,21 +574,14 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWalletDisplay();
     loadKioskCharger();
     setInterval(loadKioskCharger, 15000);
-    restoreSession();
+    clearSavedSession();
 });
 
-async function restoreSession() {
-    if (!window.GoodWeAPI || !GoodWeAPI.isAuthenticated()) return;
-    try {
-        const user = await GoodWeAPI.me();
-        applyAuthenticatedUser(user);
-        await refreshWalletFromServer();
-        showScreen('screen-charger');
-    } catch (err) {
-        clearAuthToken();
-        state.currentUser = null;
-        state.isAuthenticated = false;
-    }
+function clearSavedSession() {
+    if (window.GoodWeAPI && GoodWeAPI.isAuthenticated()) clearAuthToken();
+    state.currentUser = null;
+    state.isAuthenticated = false;
+    state.authRedirect = null;
 }
 
 async function loadKioskCharger() {
