@@ -7,6 +7,49 @@ let chargersLayer = null;
 let chargersById = {};
 
 const DEFAULT_CENTER = { lat: -23.5505, lng: -46.6333 };
+const PUBLIC_CHARGING_URL = 'https://overpass-api.de/api/interpreter';
+
+async function fetchPublicChargingStations(lat, lng) {
+    const radius = 20000;
+    const query = `[out:json][timeout:20];(node["amenity"="charging_station"](around:${radius},${lat},${lng});way["amenity"="charging_station"](around:${radius},${lat},${lng});relation["amenity"="charging_station"](around:${radius},${lat},${lng}););out center tags;`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const response = await fetch(PUBLIC_CHARGING_URL + '?data=' + encodeURIComponent(query), {
+            signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('Overpass respondeu ' + response.status);
+        const data = await response.json();
+        return (data.elements || []).map(element => {
+            const tags = element.tags || {};
+            const point = element.center || { lat: element.lat, lng: element.lon };
+            const name = tags.name || tags.brand || 'Eletroposto';
+            const location = tags['addr:street'] || tags['addr:city'] || 'Local informado no OpenStreetMap';
+            const power = Number(tags['charging:power'] || tags.power || 0);
+            const connector = tags.connector || tags['charging:connector'] || 'Não informado';
+
+            return {
+                id: 'osm-' + element.type + '-' + element.id,
+                name,
+                location,
+                power_kw: power > 0 ? power : 7,
+                connector,
+                lat: point.lat,
+                lng: point.lon != null ? point.lon : point.lng,
+                status: 'available',
+                is_available: true,
+                vehicle_plate: null,
+                available_in_minutes: null,
+                estimated_price_per_hour: null,
+                source: 'openstreetmap',
+                source_label: 'OpenStreetMap',
+            };
+        }).filter(charger => charger.lat != null && charger.lng != null);
+    } finally {
+        clearTimeout(timeout);
+    }
+}
 
 function initMap() {
     if (map) return;
@@ -55,7 +98,20 @@ async function loadNearbyChargers(lat, lng) {
     if (countEl) countEl.classList.remove('active');
 
     try {
-        const chargers = await GoodWeAPI.listChargers();
+        const [goodweResult, publicResult] = await Promise.allSettled([
+            GoodWeAPI.listChargers(),
+            fetchPublicChargingStations(lat, lng),
+        ]);
+        const goodweChargers = goodweResult.status === 'fulfilled'
+            ? goodweResult.value.map(charger => ({ ...charger, source: 'goodwe', source_label: 'GoodWe' }))
+            : [];
+        const publicChargers = publicResult.status === 'fulfilled' ? publicResult.value : [];
+
+        if (publicResult.status === 'rejected') {
+            console.warn('Não foi possível buscar eletropostos públicos:', publicResult.reason.message);
+        }
+
+        const chargers = goodweChargers.concat(publicChargers);
         const withCoords = chargers.filter(c => c.lat != null && c.lng != null);
         const nearby = withCoords
             .map(charger => ({ ...charger, _dist: calculateDistance(lat, lng, charger.lat, charger.lng) }))
@@ -82,7 +138,7 @@ function renderStations(chargers) {
 
     chargers.forEach(charger => {
         chargersById[charger.id] = charger;
-        const available = charger.is_available;
+        const available = charger.is_available !== false;
         const color = available ? '#e53935' : '#8a8f98';
         const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
         const icon = L.divIcon({
@@ -92,12 +148,14 @@ function renderStations(chargers) {
         });
         const marker = L.marker([charger.lat, charger.lng], { icon }).addTo(chargersLayer);
         const distanceLabel = charger._dist < 1 ? (charger._dist * 1000).toFixed(0) + ' m' : charger._dist.toFixed(1) + ' km';
-        const statusLabel = available
-            ? '<span style="color:#10b981;font-weight:600;">Disponível</span>'
-            : `<span style="color:#ef4444;font-weight:600;">Ocupado${charger.available_in_minutes != null ? ' · libera em ~' + charger.available_in_minutes + ' min' : ''}</span>`;
+        const statusLabel = charger.source === 'openstreetmap'
+            ? '<span style="color:#60a5fa;font-weight:600;">Informado no mapa</span>'
+            : (available
+                ? '<span style="color:#10b981;font-weight:600;">Disponível</span>'
+                : `<span style="color:#ef4444;font-weight:600;">Ocupado${charger.available_in_minutes != null ? ' · libera em ~' + charger.available_in_minutes + ' min' : ''}</span>`);
         const popupContent = `<div class="charger-popup">
             <h3>${charger.name}</h3>
-            <span class="popup-type">Rede GoodWe · ${charger.connector}</span>
+            <span class="popup-type">${charger.source_label || 'GoodWe'} · ${charger.connector}</span>
             <p><strong>Potência:</strong> ${charger.power_kw} kW</p>
             <p><strong>Status:</strong> ${statusLabel}</p>
             <p><strong>Distância:</strong> ${distanceLabel}</p>
@@ -109,7 +167,9 @@ function renderStations(chargers) {
 
     if (countEl) {
         if (chargers.length > 0) {
-            countEl.innerHTML = `<strong>${chargers.length}</strong> carregador(es) da rede GoodWe encontrado(s)`;
+            const goodweCount = chargers.filter(charger => charger.source === 'goodwe').length;
+            const publicCount = chargers.length - goodweCount;
+            countEl.innerHTML = `<strong>${chargers.length}</strong> eletroposto(s) encontrado(s) · ${goodweCount} GoodWe + ${publicCount} públicos`;
         } else {
             countEl.innerHTML = 'Nenhum carregador encontrado por perto';
         }

@@ -4,7 +4,13 @@ const AUTH_TOKEN_KEY = 'goodwe_api_token';
 const API_MODE_KEY = 'goodwe_api_mode';
 const SIM_DB_KEY = 'goodwe_sim_db_v1';
 
-let runtimeMode = localStorage.getItem(API_MODE_KEY) || 'unknown';
+let runtimeMode = window.GOODWE_FORCE_SIMULATION
+    ? 'simulation'
+    : (localStorage.getItem(API_MODE_KEY) || 'unknown');
+
+if (window.GOODWE_FORCE_SIMULATION) {
+    localStorage.setItem(API_MODE_KEY, 'simulation');
+}
 
 function getAuthToken() {
     return localStorage.getItem(AUTH_TOKEN_KEY);
@@ -38,7 +44,7 @@ function setRuntimeMode(mode) {
 }
 
 function isSimulationMode() {
-    return runtimeMode === 'simulation';
+    return !!window.GOODWE_FORCE_SIMULATION || runtimeMode === 'simulation';
 }
 
 function firstValidationError(errors) {
@@ -101,28 +107,18 @@ async function apiFetch(path, options) {
 function seedSimulationDb() {
     const now = Date.now();
     return {
-        users: [
-            {
-                id: 1,
-                name: 'Demo GoodWe',
-                email: 'demo@goodwe.app',
-                phone: '11999990000',
-                password: '123456',
-                balance: 100,
-                points: 0,
-                is_admin: false,
-            },
-        ],
+        users: [],
         chargers: [
-            { id: 'CG-001', name: 'Aeroporto Norte', location: 'Terminal 2', power_kw: 22, connector: 'Type 2', lat: -23.4373, lng: -46.4731, occupied_until: null, vehicle_plate: null },
-            { id: 'CG-002', name: 'Paulista Center', location: 'Av. Paulista, 1000', power_kw: 30, connector: 'Type 2', lat: -23.5614, lng: -46.6559, occupied_until: null, vehicle_plate: null },
-            { id: 'CG-003', name: 'Morumbi Tower', location: 'Av. Morumbi, 2500', power_kw: 60, connector: 'CCS2', lat: -23.6014, lng: -46.6993, occupied_until: now + (18 * 60 * 1000), vehicle_plate: 'SIM-0003' },
-            { id: 'CG-004', name: 'Ibirapuera Park', location: 'Portao 7', power_kw: 22, connector: 'Type 2', lat: -23.5881, lng: -46.6578, occupied_until: null, vehicle_plate: null },
+            { id: 'CG-001', name: 'Torre A - Norte', location: 'Parking Norte, Piso 1', power_kw: 22, connector: 'Type 2', lat: -23.5505, lng: -46.6333, occupied_until: null, vehicle_plate: null },
+            { id: 'CG-002', name: 'Torre A - Sul', location: 'Parking Sul, Piso 2', power_kw: 11, connector: 'Type 2', lat: -23.5620, lng: -46.6540, occupied_until: now + (25 * 60 * 1000), vehicle_plate: 'ABC-1D23' },
+            { id: 'CG-003', name: 'Estádio - Setor B', location: 'Estacionamento B, vaga 12', power_kw: 50, connector: 'CCS 2', lat: -23.5670, lng: -46.6920, occupied_until: null, vehicle_plate: null },
+            { id: 'CG-004', name: 'Garagem Empresarial', location: 'Avenida Paulista, 1000', power_kw: 7, connector: 'Type 2', lat: -23.5615, lng: -46.6559, occupied_until: now + (70 * 60 * 1000), vehicle_plate: 'XYZ-9Z87' },
+            { id: 'CG-005', name: 'Pátio Central', location: 'Pátio Central, portão principal', power_kw: 22, connector: 'Type 2', lat: -23.5470, lng: -46.6380, occupied_until: null, vehicle_plate: null },
         ],
         tokens: {},
         transactions: [],
         charging_sessions: [],
-        next_user_id: 2,
+        next_user_id: 1,
         next_transaction_id: 1,
         next_session_id: 1,
     };
@@ -132,6 +128,13 @@ function getSimulationDb() {
     try {
         const parsed = JSON.parse(localStorage.getItem(SIM_DB_KEY) || 'null');
         if (parsed && typeof parsed === 'object' && Array.isArray(parsed.users) && Array.isArray(parsed.chargers)) {
+            const defaultChargers = seedSimulationDb().chargers;
+            const defaultIds = defaultChargers.map(charger => charger.id);
+            const hasCurrentCatalog = defaultIds.every(id => parsed.chargers.some(charger => charger.id === id));
+            if (!hasCurrentCatalog) {
+                parsed.chargers = defaultChargers;
+                localStorage.setItem(SIM_DB_KEY, JSON.stringify(parsed));
+            }
             return parsed;
         }
     } catch (_) {
