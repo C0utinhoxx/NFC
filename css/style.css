@@ -22,9 +22,9 @@
     --primary-glow: rgba(229, 57, 53, 0.4);
     --success: #10b981;
     --success-glow: rgba(16, 185, 129, 0.3);
-    --accent: #f5a524;
-    --accent-soft: rgba(245, 165, 36, 0.14);
-    --energy-blue: #f5a524;
+    --accent: #ff6b6b;
+    --accent-soft: rgba(255, 107, 107, 0.14);
+    --energy-blue: #ff6b6b;
     --font: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -73,8 +73,8 @@ body {
 }
 
 .api-env-dot.simulation {
-    background: #f59e0b;
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    background: var(--primary);
+    box-shadow: 0 0 8px rgba(229, 57, 53, 0.6);
 }
 
 .api-env-dot.unknown {
@@ -236,23 +236,6 @@ body::after {
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid var(--border);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-}
-
-/* mapa com duotone vermelho para combinar com o tema */
-.leaflet-tile-pane {
-    filter: brightness(0.72) saturate(0.75) contrast(1.06) sepia(0.32) hue-rotate(-10deg);
-}
-
-.map-wrapper::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 400;
-    pointer-events: none;
-    background:
-        radial-gradient(ellipse 70% 60% at 50% 50%, transparent 40%, rgba(20, 6, 10, 0.62) 100%),
-        linear-gradient(180deg, rgba(70, 14, 18, 0.32), transparent 40%);
 }
 
 .map-loading {
@@ -345,7 +328,7 @@ body::after {
     background: var(--accent);
     border: 3px solid white;
     border-radius: 50%;
-    box-shadow: 0 2px 12px rgba(245, 165, 36, 0.4);
+    box-shadow: 0 2px 12px rgba(255, 107, 107, 0.4);
     display: inline-block;
     width: 20px;
     height: 20px;
@@ -774,7 +757,7 @@ body::after {
     justify-content: center;
     align-items: center;
     padding: 24px;
-    background: radial-gradient(ellipse 62% 52% at 50% 48%, rgba(11, 6, 9, 0.88) 0%, rgba(11, 6, 9, 0.66) 45%, rgba(11, 6, 9, 0.2) 78%, transparent 100%);
+    background: radial-gradient(ellipse at center, rgba(229, 57, 53, 0.03) 0%, transparent 70%);
 }
 
 .auth-card {
@@ -910,7 +893,7 @@ body::after {
 
 .ready-screen {
     padding: 24px;
-    background: radial-gradient(ellipse 58% 62% at 50% 50%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.7) 45%, rgba(11, 6, 9, 0.22) 78%, transparent 100%);
+    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
 }
 
 .ready-content {
@@ -1051,7 +1034,7 @@ body::after {
 
 .type-screen {
     padding: 24px;
-    background: radial-gradient(ellipse 58% 62% at 50% 50%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.7) 45%, rgba(11, 6, 9, 0.22) 78%, transparent 100%);
+    background: radial-gradient(ellipse at center, rgba(229, 57, 53, 0.03) 0%, transparent 70%);
 }
 
 .type-content {
@@ -1240,7 +1223,7 @@ body::after {
 
 .screen-charging {
     padding: 24px;
-    background: radial-gradient(ellipse 55% 65% at 50% 48%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.7) 45%, rgba(11, 6, 9, 0.2) 80%, transparent 100%);
+    background: radial-gradient(ellipse at center, rgba(229, 57, 53, 0.04) 0%, transparent 70%);
 }
 
 .charging-content {
@@ -1476,7 +1459,7 @@ body::after {
     justify-content: center;
     text-align: center;
     gap: 8px;
-    background: radial-gradient(ellipse 55% 62% at 50% 50%, rgba(11, 6, 9, 0.88) 0%, rgba(11, 6, 9, 0.66) 45%, rgba(11, 6, 9, 0.2) 80%, transparent 100%);
+    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
 }
 
 .done-icon {
@@ -2336,7 +2319,7 @@ body::after {
 
 .wallet-screen {
     padding: 0 20px 24px;
-    background: radial-gradient(ellipse 60% 70% at 50% 45%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.74) 45%, rgba(11, 6, 9, 0.28) 80%, transparent 100%);
+    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
 }
 
 .wallet-screen-header {
@@ -2396,7 +2379,7 @@ body::after {
 }
 
 .wallet-summary-card.points {
-    border-color: rgba(245, 165, 36, 0.35);
+    border-color: rgba(255, 107, 107, 0.35);
 }
 
 .wallet-summary-label,
@@ -2452,8 +2435,8 @@ body::after {
 .wallet-rate-badge {
     flex-shrink: 0;
     color: var(--accent);
-    background: rgba(245, 165, 36, 0.1);
-    border: 1px solid rgba(245, 165, 36, 0.25);
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.25);
     border-radius: 999px;
     padding: 5px 9px;
     font-size: 11px;
@@ -2621,8 +2604,8 @@ body::after {
 .coupon-selector {
     margin-top: 14px;
     padding: 14px;
-    background: rgba(245, 165, 36, 0.06);
-    border: 1px solid rgba(245, 165, 36, 0.2);
+    background: rgba(255, 107, 107, 0.06);
+    border: 1px solid rgba(255, 107, 107, 0.2);
     border-radius: 12px;
     text-align: left;
 }
@@ -2658,7 +2641,7 @@ body::after {
 .coupon-option.selected {
     border-color: var(--accent);
     color: var(--text);
-    background: rgba(245, 165, 36, 0.12);
+    background: rgba(255, 107, 107, 0.12);
 }
 
 .coupon-pricing {
@@ -2709,7 +2692,7 @@ body::after {
 
 .payment-method-option.selected {
     border-color: var(--accent);
-    background: rgba(245, 165, 36, 0.15);
+    background: rgba(255, 107, 107, 0.15);
     color: var(--text);
 }
 
@@ -2718,7 +2701,7 @@ body::after {
     max-width: 560px;
     margin: 16px auto 0;
     border-radius: 16px;
-    border: 1px solid rgba(245, 165, 36, 0.3);
+    border: 1px solid rgba(255, 107, 107, 0.3);
     background: linear-gradient(145deg, #171b27, #14161e);
     padding: 16px;
     display: grid;

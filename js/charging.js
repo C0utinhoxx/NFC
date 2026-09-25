@@ -524,7 +524,7 @@ function updateChargingWallet() {
     if (walletEl) {
         if (isChargingSimulationMode()) {
             walletEl.textContent = 'Pagar ao final: ' + brl(state.chargeFinalCost || state.estimatedCost || 0);
-            walletEl.style.color = '#f5a524';
+            walletEl.style.color = '#ff6b6b';
             return;
         }
 

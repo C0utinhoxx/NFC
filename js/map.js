@@ -191,7 +191,7 @@ function renderStations(chargers) {
         const marker = L.marker([charger.lat, charger.lng], { icon }).addTo(chargersLayer);
         const distanceLabel = charger._dist < 1 ? (charger._dist * 1000).toFixed(0) + ' m' : charger._dist.toFixed(1) + ' km';
         const statusLabel = charger.source === 'openstreetmap'
-            ? '<span style="color:#f5a524;font-weight:600;">Informado no mapa</span>'
+            ? '<span style="color:#ff6b6b;font-weight:600;">Informado no mapa</span>'
             : (available
                 ? '<span style="color:#10b981;font-weight:600;">Disponível</span>'
                 : `<span style="color:#ef4444;font-weight:600;">Ocupado${charger.available_in_minutes != null ? ' · libera em ~' + charger.available_in_minutes + ' min' : ''}</span>`);
