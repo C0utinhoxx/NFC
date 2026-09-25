@@ -391,12 +391,111 @@
                 <span class="wallet-tag">Saldo disponível</span>
             </div>
 
+            <button class="btn-outline" onclick="showWalletScreen()" style="max-width: 360px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                    <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"></path>
+                </svg>
+                Carteira e benefícios
+            </button>
+
             <button class="btn-primary" id="btn-select-type" onclick="showChargeTypeScreen()" style="max-width: 360px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
                 Selecionar Tipo de Carga
             </button>
+        </div>
+    </div>
+
+    <div id="screen-wallet" class="screen wallet-screen">
+        <div class="wallet-screen-header">
+            <button class="btn-back" onclick="showReadyScreen()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <div>
+                <div class="wallet-screen-title">Minha carteira</div>
+                <div class="wallet-screen-subtitle">Saldo, pontos e benefícios PowerTag</div>
+            </div>
+        </div>
+
+        <div class="wallet-screen-content">
+            <div class="wallet-summary-grid">
+                <div class="wallet-summary-card">
+                    <span class="wallet-summary-label">Saldo</span>
+                    <strong class="wallet-summary-value money" id="wallet-screen-balance">R$ 0,00</strong>
+                    <span class="wallet-summary-caption">Dinheiro disponível</span>
+                </div>
+                <div class="wallet-summary-card points">
+                    <span class="wallet-summary-label">PowerTag Points</span>
+                    <strong class="wallet-summary-value" id="wallet-screen-points">0,00 pontos</strong>
+                    <span class="wallet-summary-caption">Recompensa de fidelidade</span>
+                </div>
+            </div>
+
+            <div class="wallet-section-card">
+                <div class="wallet-section-heading">
+                    <div>
+                        <h2>Adicionar crédito</h2>
+                        <p>Cada R$ 1,00 confirmado gera 0,10 pontos.</p>
+                    </div>
+                    <span class="wallet-rate-badge">10% em pontos</span>
+                </div>
+                <form class="deposit-form" onsubmit="event.preventDefault(); submitWalletDeposit()">
+                    <div class="form-group">
+                        <label for="deposit-amount">Valor</label>
+                        <div class="input-prefix">
+                            <span class="prefix">R$</span>
+                            <input type="number" id="deposit-amount" min="0.01" step="0.01" placeholder="Ex: 100,00" inputmode="decimal" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-small" id="deposit-submit">Adicionar</button>
+                </form>
+                <div class="wallet-message" id="deposit-message"></div>
+            </div>
+
+            <div class="wallet-section-card">
+                <div class="wallet-section-heading">
+                    <div>
+                        <h2>Benefícios</h2>
+                        <p>Resgate cupons usando seus pontos.</p>
+                    </div>
+                </div>
+                <div class="benefits-list" id="benefits-list"></div>
+            </div>
+
+            <div class="wallet-section-card">
+                <div class="wallet-section-heading">
+                    <div>
+                        <h2>Cupons</h2>
+                        <p>Use um cupom disponível em uma recarga.</p>
+                    </div>
+                </div>
+                <div class="coupons-list" id="coupons-list"></div>
+            </div>
+
+            <div class="wallet-section-card">
+                <div class="wallet-section-heading">
+                    <div>
+                        <h2>Histórico de pontos</h2>
+                        <p>Movimentações do seu programa de fidelidade.</p>
+                    </div>
+                </div>
+                <div class="points-history" id="points-history"></div>
+            </div>
+
+            <div class="wallet-section-card manager-summary-card">
+                <div class="wallet-section-heading">
+                    <div>
+                        <h2>Resumo PowerTag</h2>
+                        <p>Indicadores resumidos do programa de fidelização.</p>
+                    </div>
+                </div>
+                <div class="manager-summary-grid" id="manager-summary"></div>
+            </div>
         </div>
     </div>
 
@@ -554,11 +653,15 @@
                     <span class="receipt-label">Usuário</span>
                     <span class="receipt-value" id="final-user">-</span>
                 </div>
-                <div class="receipt-row">
-                    <span class="receipt-label">Custo estimado</span>
-                    <span class="receipt-value" id="final-estimated">R$ 0,00</span>
-                </div>
-                <div class="receipt-row">
+                 <div class="receipt-row">
+                     <span class="receipt-label">Custo estimado</span>
+                     <span class="receipt-value" id="final-estimated">R$ 0,00</span>
+                 </div>
+                 <div class="receipt-row" id="final-discount-row" style="display:none;">
+                     <span class="receipt-label">Desconto do cupom</span>
+                     <span class="receipt-value" id="final-discount">R$ 0,00</span>
+                 </div>
+                 <div class="receipt-row">
                     <span class="receipt-label">Tarifa</span>
                     <span class="receipt-value" id="final-tariff">Tarifa: R$ 1,90/kWh</span>
                 </div>
@@ -589,6 +692,7 @@
         window.GOODWE_API_URL = window.GOODWE_API_URL || 'http://127.0.0.1:8000/api';
     </script>
     <script src="js/api.js"></script>
+    <script src="js/loyalty.js"></script>
     <script src="js/app.js"></script>
     <script src="js/map.js"></script>
     <script src="js/charging.js"></script>

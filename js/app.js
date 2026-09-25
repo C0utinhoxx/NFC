@@ -14,6 +14,11 @@ const state = {
     targetPercent: null,
     batteryCurrent: 30,
     walletBalance: WALLET_BALANCE,
+    points: 0,
+    selectedCouponId: null,
+    chargeDiscount: 0,
+    chargeFinalCost: null,
+    chargeTotalKwh: null,
     selectedCharger: null,
     currentCharger: null,
     activeSession: null,
@@ -72,6 +77,10 @@ function showChargeTypeScreen() {
     state.chargeMode = null;
     state.estimatedCost = null;
     state.targetPercent = null;
+    state.selectedCouponId = null;
+    state.chargeDiscount = 0;
+    state.chargeFinalCost = null;
+    state.chargeTotalKwh = null;
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('type-detail').classList.remove('active');
     document.getElementById('btn-confirm-type').style.display = 'none';
@@ -81,13 +90,175 @@ function showChargeTypeScreen() {
 function updateWalletDisplay() {
     const walletEl = document.getElementById('wallet-balance');
     if (walletEl) {
-        walletEl.textContent = 'R$ ' + state.walletBalance.toFixed(2).replace('.', ',');
+        walletEl.textContent = 'R$ ' + Number(state.walletBalance || 0).toFixed(2).replace('.', ',');
     }
+    const pointsEl = document.getElementById('wallet-screen-points');
+    if (pointsEl) pointsEl.textContent = formatPoints(state.points);
+    const balanceEl = document.getElementById('wallet-screen-balance');
+    if (balanceEl) balanceEl.textContent = 'R$ ' + Number(state.walletBalance || 0).toFixed(2).replace('.', ',');
     const walletCard = document.getElementById('wallet-card');
     if (walletCard) {
         const canCharge = state.walletBalance > 0;
         walletCard.style.borderColor = canCharge ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
     }
+}
+
+function formatPoints(points) {
+    return Number(points || 0).toFixed(2).replace('.', ',') + ' pontos';
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    return new Date(value).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function showWalletScreen() {
+    if (!state.isAuthenticated) {
+        showAuthScreen();
+        return;
+    }
+    renderWalletScreen();
+    showScreen('screen-wallet');
+}
+
+function renderWalletScreen() {
+    const data = Loyalty.getData();
+    state.points = Number(data.points || 0);
+    updateWalletDisplay();
+    renderBenefits();
+    renderCoupons();
+    renderPointsHistory();
+    renderManagerSummary();
+}
+
+function renderBenefits() {
+    const container = document.getElementById('benefits-list');
+    if (!container) return;
+    const points = state.points;
+    container.innerHTML = LOYALTY_BENEFITS.map(benefit => {
+        const available = points >= benefit.points_cost;
+        const missing = Math.max(0, benefit.points_cost - points);
+        return `<div class="benefit-item">
+            <div class="benefit-info">
+                <div class="benefit-title">${benefit.discount_percentage}% OFF</div>
+                <div class="benefit-cost">${formatPoints(benefit.points_cost)}</div>
+            </div>
+            <div class="benefit-action ${available ? '' : 'locked'}">
+                ${available
+                    ? `<button class="btn-primary btn-small" onclick="redeemBenefit(${benefit.points_cost}, ${benefit.discount_percentage})">Resgatar</button>`
+                    : `Faltam ${formatPoints(missing)}`}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderCoupons() {
+    const container = document.getElementById('coupons-list');
+    if (!container) return;
+    const coupons = Loyalty.getCoupons();
+    if (!coupons.length) {
+        container.innerHTML = '<div class="empty-list">Você ainda não resgatou cupons.</div>';
+        return;
+    }
+    container.innerHTML = coupons.map(coupon => {
+        const available = coupon.status === 'available';
+        return `<div class="coupon-item">
+            <div class="coupon-info">
+                <div class="coupon-title">${coupon.discount_percentage}% OFF</div>
+                <div class="coupon-meta">Resgatado com ${formatPoints(coupon.points_cost)} · ${formatDate(coupon.redeemed_at)}</div>
+            </div>
+            <div class="coupon-status ${available ? 'available' : 'used'}">${available ? 'Disponível' : 'Utilizado'}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderPointsHistory() {
+    const container = document.getElementById('points-history');
+    if (!container) return;
+    const transactions = Loyalty.getPointTransactions();
+    if (!transactions.length) {
+        container.innerHTML = '<div class="empty-list">As movimentações de pontos aparecerão aqui.</div>';
+        return;
+    }
+    container.innerHTML = transactions.slice(0, 12).map(transaction => {
+        const earned = Number(transaction.points || 0) >= 0;
+        return `<div class="point-history-item">
+            <div class="point-history-info">
+                <div class="point-history-title">${earned ? '+' : ''}${Number(transaction.points || 0).toFixed(2).replace('.', ',')} pontos</div>
+                <div class="point-history-description">${transaction.description} · ${formatDate(transaction.created_at)}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderManagerSummary() {
+    const container = document.getElementById('manager-summary');
+    if (!container) return;
+    const summary = Loyalty.getManagerSummary();
+    const items = [
+        ['Usuários participantes', summary.participants],
+        ['Pontos distribuídos', formatPoints(summary.points_distributed)],
+        ['Cupons resgatados', summary.coupons_redeemed],
+        ['Cupons utilizados', summary.coupons_used],
+        ['Desconto concedido', 'R$ ' + Number(summary.discount_value || 0).toFixed(2).replace('.', ',')],
+        ['Créditos adicionados', 'R$ ' + Number(summary.wallet_credits || 0).toFixed(2).replace('.', ',')],
+    ];
+    container.innerHTML = items.map(item => `<div class="manager-summary-item"><strong>${item[1]}</strong><span>${item[0]}</span></div>`).join('');
+}
+
+function parseMoney(value) {
+    return Number(String(value || '').replace(',', '.'));
+}
+
+function walletBalanceFromResponse(response, fallback) {
+    if (response && response.wallet && response.wallet.balance != null) return Number(response.wallet.balance);
+    if (response && response.user && response.user.balance != null) return Number(response.user.balance);
+    if (response && response.balance != null) return Number(response.balance);
+    return Number(fallback);
+}
+
+async function submitWalletDeposit() {
+    const amount = parseMoney(document.getElementById('deposit-amount').value);
+    const message = document.getElementById('deposit-message');
+    if (!amount || amount <= 0) {
+        message.className = 'wallet-message error';
+        message.textContent = 'Informe um valor maior que zero.';
+        return;
+    }
+    const submit = document.getElementById('deposit-submit');
+    submit.disabled = true;
+    message.className = 'wallet-message';
+    message.textContent = 'Confirmando crédito...';
+    try {
+        const response = await GoodWeAPI.deposit(amount);
+        state.walletBalance = walletBalanceFromResponse(response, state.walletBalance + amount);
+        const referenceId = response && (response.transaction_id || response.deposit_id || response.wallet_transaction_id || response.id);
+        const result = Loyalty.confirmDeposit(Loyalty.getUserId(), amount, referenceId);
+        state.points = Loyalty.getPoints();
+        if (state.currentUser) state.currentUser.points = state.points;
+        document.getElementById('deposit-amount').value = '';
+        message.className = 'wallet-message';
+        message.textContent = result.created
+            ? 'Crédito confirmado. Você recebeu ' + formatPoints(result.points) + '.'
+            : 'Crédito confirmado. Os pontos desta transação já estavam registrados.';
+        updateWalletDisplay();
+        renderWalletScreen();
+    } catch (err) {
+        message.className = 'wallet-message error';
+        message.textContent = err.message;
+    } finally {
+        submit.disabled = false;
+    }
+}
+
+function redeemBenefit(pointsCost, discountPercentage) {
+    const coupon = Loyalty.redeemBenefit(Loyalty.getUserId(), pointsCost, discountPercentage);
+    if (!coupon) {
+        renderWalletScreen();
+        return;
+    }
+    state.points = Loyalty.getPoints();
+    renderWalletScreen();
 }
 
 function updateRouteSummary() {
@@ -117,6 +288,10 @@ function resetChargeState() {
     state.chargeMode = null;
     state.estimatedCost = null;
     state.targetPercent = null;
+    state.selectedCouponId = null;
+    state.chargeDiscount = 0;
+    state.chargeFinalCost = null;
+    state.chargeTotalKwh = null;
     state.seconds = 0;
     state.kwh = 0;
     state.percent = 0;
@@ -129,15 +304,18 @@ function applyAuthenticatedUser(user) {
     state.currentUser = user;
     state.isAuthenticated = true;
     state.walletBalance = Number(user.balance || 0);
+    state.points = Loyalty.getPoints(Loyalty.getUserId());
+    if (state.currentUser) state.currentUser.points = state.points;
 }
 
 async function refreshWalletFromServer() {
     try {
         const wallet = await GoodWeAPI.getWallet();
         state.walletBalance = Number(wallet.balance || 0);
+        state.points = Loyalty.getPoints();
         if (state.currentUser) {
             state.currentUser.balance = state.walletBalance;
-            state.currentUser.points = wallet.points;
+            state.currentUser.points = state.points;
         }
         updateWalletDisplay();
     } catch (err) {
@@ -205,6 +383,11 @@ async function handleLogout() {
     state.currentUser = null;
     state.isAuthenticated = false;
     state.walletBalance = WALLET_BALANCE;
+    state.points = 0;
+    state.selectedCouponId = null;
+    state.chargeDiscount = 0;
+    state.chargeFinalCost = null;
+    state.chargeTotalKwh = null;
     resetAll();
 }
 
@@ -328,6 +511,10 @@ window.showScreen = showScreen;
 window.showAuthScreen = showAuthScreen;
 window.showRegisterScreen = showRegisterScreen;
 window.showChargeTypeScreen = showChargeTypeScreen;
+window.showWalletScreen = showWalletScreen;
+window.submitWalletDeposit = submitWalletDeposit;
+window.redeemBenefit = redeemBenefit;
+window.formatPoints = formatPoints;
 window.startCharging = startCharging;
 window.simulateNFCTap = simulateNFCTap;
 window.handleLogin = handleLogin;

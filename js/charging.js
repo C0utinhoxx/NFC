@@ -6,6 +6,55 @@ function brl(n) {
     return 'R$ ' + Number(n || 0).toFixed(2).replace('.', ',');
 }
 
+function getChargePricing(estimate) {
+    const original = Math.max(0, Number(estimate && estimate.cost || 0));
+    const coupon = state.selectedCouponId
+        ? Loyalty.getAvailableCoupons().find(item => item.id === state.selectedCouponId)
+        : null;
+    const discount = coupon ? Math.max(0, original * Number(coupon.discount_percentage) / 100) : 0;
+    return {
+        original,
+        discount: Math.min(original, discount),
+        final: Math.max(0, original - discount),
+        coupon,
+    };
+}
+
+function renderCouponSelector(estimate) {
+    const container = document.getElementById('coupon-selector');
+    if (!container) return;
+    const coupons = Loyalty.getAvailableCoupons();
+    const pricing = getChargePricing(estimate);
+    const options = coupons.length
+        ? `<label class="coupon-option ${!state.selectedCouponId ? 'selected' : ''}">
+                <input type="radio" name="charge-coupon" value="" ${!state.selectedCouponId ? 'checked' : ''} />
+                <span>Usar saldo integral</span>
+            </label>` + coupons.map(coupon => `<label class="coupon-option ${state.selectedCouponId === coupon.id ? 'selected' : ''}">
+                <input type="radio" name="charge-coupon" value="${coupon.id}" ${state.selectedCouponId === coupon.id ? 'checked' : ''} />
+                <span>Cupom ${coupon.discount_percentage}% OFF</span>
+            </label>`).join('')
+        : '<div class="empty-list">Nenhum cupom disponível para esta recarga.</div>';
+    container.innerHTML = `<div class="coupon-selector">
+        <div class="coupon-selector-title">Cupom de desconto</div>
+        <div class="coupon-selector-hint">Selecione no máximo um cupom disponível.</div>
+        ${options}
+        <div class="coupon-pricing">
+            <div class="estimate-row"><span>Valor original</span><strong>${brl(pricing.original)}</strong></div>
+            <div class="estimate-row"><span>Desconto</span><strong class="discount-value">${brl(pricing.discount)}</strong></div>
+            <div class="estimate-row"><span>Valor final</span><strong class="final-value">${brl(pricing.final)}</strong></div>
+        </div>
+    </div>`;
+    container.querySelectorAll('input[name="charge-coupon"]').forEach(input => {
+        input.addEventListener('change', () => {
+            state.selectedCouponId = input.value || null;
+            const updated = getChargePricing(estimate);
+            state.chargeDiscount = updated.discount;
+            state.chargeFinalCost = updated.final;
+            renderCouponSelector(estimate);
+        });
+    });
+}
+
 function kwhFromPercentDelta(deltaPercent) {
     return (Math.max(0, deltaPercent) / 100) * BATTERY_CAPACITY;
 }
@@ -37,7 +86,8 @@ function computeFullEstimate() {
 
 function estimateHtml(est, opts) {
     opts = opts || {};
-    const insufficient = est.cost > state.walletBalance + 0.001;
+    const pricing = getChargePricing(est);
+    const insufficient = pricing.final > state.walletBalance + 0.001;
     return `
         <div class="estimate-box">
             ${opts.title ? `<div class="estimate-title">${opts.title}</div>` : ''}
@@ -54,7 +104,7 @@ function estimateHtml(est, opts) {
                 <strong>${brl(state.walletBalance)}</strong>
             </div>
             ${opts.extra || ''}
-            ${insufficient ? `<div class="estimate-warn">Saldo insuficiente para esta carga. Faltam ${brl(est.cost - state.walletBalance)}.</div>` : ''}
+            ${insufficient ? `<div class="estimate-warn">Saldo insuficiente para esta carga. Faltam ${brl(pricing.final - state.walletBalance)}.</div>` : ''}
         </div>
     `;
 }
@@ -65,10 +115,13 @@ function selectChargeType(type) {
     state.chargePercent = null;
     state.chargeValue = null;
     state.chargeMode = null;
-    state.estimatedCost = null;
-    state.targetPercent = null;
+     state.estimatedCost = null;
+     state.targetPercent = null;
+     state.selectedCouponId = null;
+     state.chargeDiscount = 0;
+     state.chargeFinalCost = null;
 
-    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
     const selectedCard = document.querySelector(`.type-card[data-type="${type}"]`);
     if (selectedCard) selectedCard.classList.add('selected');
 
@@ -119,9 +172,12 @@ function selectChargeType(type) {
                 <span class="battery-text">${current}%</span>
             </div>
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;text-align:center;">Nível atual: <strong>${current}%</strong> → <strong>100%</strong></p>
-            ${estimateHtml(est, { title: 'Simulação de custo' })}
-            <div class="tariff-badge" style="margin: 16px auto 0;">Tarifa: ${brl(TARIFF)}/kWh</div>
-        `;
+             ${estimateHtml(est, { title: 'Simulação de custo' })}
+             <div id="coupon-selector"></div>
+             <div class="tariff-badge" style="margin: 16px auto 0;">Tarifa: ${brl(TARIFF)}/kWh</div>
+         `;
+        state.chargeFinalCost = est.cost;
+        renderCouponSelector(est);
     } else if (type === 'partial') {
         detail.innerHTML = `
             <div class="partial-fields">
@@ -141,41 +197,44 @@ function selectChargeType(type) {
                 </div>
             </div>
             <p class="partial-hint">Preencha a porcentagem ou o valor — os dois campos se sincronizam automaticamente.</p>
-            <div id="partial-estimate" class="estimate-box">
-                <div class="estimate-empty">Informe a porcentagem ou o valor para ver a simulação de custo</div>
-            </div>
-            <div class="tariff-badge" style="margin: 16px auto 0;">Tarifa: ${brl(TARIFF)}/kWh</div>
+             <div id="partial-estimate" class="estimate-box">
+                 <div class="estimate-empty">Informe a porcentagem ou o valor para ver a simulação de custo</div>
+             </div>
+             <div id="coupon-selector"></div>
+             <div class="tariff-badge" style="margin: 16px auto 0;">Tarifa: ${brl(TARIFF)}/kWh</div>
         `;
 
         const inputPercent = document.getElementById('input-percent');
         const inputValue = document.getElementById('input-value');
         let syncing = false;
 
-        function renderPartialEstimate(est, note) {
-            const box = document.getElementById('partial-estimate');
-            if (!box) return;
-            const insufficient = est.cost > state.walletBalance + 0.001;
-            box.innerHTML = `
-                <div class="estimate-row">
-                    <span>Energia estimada</span>
-                    <strong>${est.kwh.toFixed(1)} kWh</strong>
-                </div>
-                <div class="estimate-row">
-                    <span>Custo estimado</span>
-                    <strong class="estimate-cost">${brl(est.cost)}</strong>
-                </div>
-                <div class="estimate-row">
-                    <span>Chega a</span>
-                    <strong>${Math.floor(est.targetPercent)}% da bateria</strong>
-                </div>
-                <div class="estimate-row">
-                    <span>Saldo após</span>
-                    <strong>${brl(Math.max(0, state.walletBalance - est.cost))}</strong>
-                </div>
-                ${note ? `<div class="estimate-note">${note}</div>` : ''}
-                ${insufficient ? `<div class="estimate-warn">Saldo insuficiente. Faltam ${brl(est.cost - state.walletBalance)}.</div>` : ''}
-            `;
-        }
+         function renderPartialEstimate(est, note) {
+             const box = document.getElementById('partial-estimate');
+             if (!box) return;
+             const pricing = getChargePricing(est);
+             const insufficient = pricing.final > state.walletBalance + 0.001;
+             box.innerHTML = `
+                 <div class="estimate-row">
+                     <span>Energia estimada</span>
+                     <strong>${est.kwh.toFixed(1)} kWh</strong>
+                 </div>
+                 <div class="estimate-row">
+                     <span>Custo estimado</span>
+                     <strong class="estimate-cost">${brl(pricing.original)}</strong>
+                 </div>
+                 <div class="estimate-row">
+                     <span>Chega a</span>
+                     <strong>${Math.floor(est.targetPercent)}% da bateria</strong>
+                 </div>
+                 <div class="estimate-row">
+                     <span>Saldo após</span>
+                     <strong>${brl(Math.max(0, state.walletBalance - pricing.final))}</strong>
+                 </div>
+                 ${note ? `<div class="estimate-note">${note}</div>` : ''}
+                 ${insufficient ? `<div class="estimate-warn">Saldo insuficiente. Faltam ${brl(pricing.final - state.walletBalance)}.</div>` : ''}
+             `;
+             renderCouponSelector(est);
+         }
 
         function clearPartial() {
             state.chargeMode = null;
@@ -264,12 +323,15 @@ function confirmChargeType() {
             }
             return;
         }
-        const est = computeFullEstimate();
-        if (est.cost > state.walletBalance) {
-            alert('Saldo insuficiente para carga total.\nCusto estimado: ' + brl(est.cost) + '\nSaldo: ' + brl(state.walletBalance));
-            return;
-        }
-        state.estimatedCost = est.cost;
+         const est = computeFullEstimate();
+         const pricing = getChargePricing(est);
+         if (pricing.final > state.walletBalance + 0.001) {
+             alert('Saldo insuficiente para carga total.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
+             return;
+         }
+         state.estimatedCost = est.cost;
+         state.chargeDiscount = pricing.discount;
+         state.chargeFinalCost = pricing.final;
         state.targetPercent = 100;
         state.chargeMode = 'full';
         startChargingWithType();
@@ -297,12 +359,15 @@ function confirmChargeType() {
             alert('A carga precisa ser maior que o nível atual da bateria (' + (state.batteryCurrent || 0) + '%).');
             return;
         }
-        if (est.cost > state.walletBalance) {
-            alert('Saldo insuficiente.\nCusto estimado: ' + brl(est.cost) + '\nSaldo: ' + brl(state.walletBalance));
-            return;
-        }
+         const pricing = getChargePricing(est);
+         if (pricing.final > state.walletBalance + 0.001) {
+             alert('Saldo insuficiente.\nValor final: ' + brl(pricing.final) + '\nSaldo: ' + brl(state.walletBalance));
+             return;
+         }
 
-        state.chargePercent = est.targetPercent;
+         state.chargeDiscount = pricing.discount;
+         state.chargeFinalCost = pricing.final;
+         state.chargePercent = est.targetPercent;
         state.chargeValue = est.cost;
         state.estimatedCost = est.cost;
         state.targetPercent = est.targetPercent;
@@ -334,21 +399,25 @@ async function startChargingWithType() {
         }
     }
 
-    if (targetCost > state.walletBalance) {
-        alert('Saldo insuficiente para iniciar o carregamento.');
-        return;
-    }
+     const totalKwh = kwhFromPercentDelta(targetPercent - startPercent);
+     if (totalKwh <= 0) {
+         alert('A bateria já está nesse nível.');
+         return;
+     }
+     const pricing = getChargePricing({ cost: targetCost });
+     if (pricing.final > state.walletBalance + 0.001) {
+         alert('Saldo insuficiente para iniciar o carregamento.');
+         return;
+     }
 
-    state.targetPercent = targetPercent;
-    state.estimatedCost = targetCost;
+     state.targetPercent = targetPercent;
+     state.estimatedCost = targetCost;
+     state.chargeDiscount = pricing.discount;
+     state.chargeFinalCost = pricing.final;
+     state.chargeTotalKwh = totalKwh;
+     targetCost = pricing.final;
 
-    const totalKwh = kwhFromPercentDelta(targetPercent - startPercent);
-    if (totalKwh <= 0) {
-        alert('A bateria já está nesse nível.');
-        return;
-    }
-
-    if (!state.currentCharger) {
+     if (!state.currentCharger) {
         alert('Carregador indisponível no momento. Tente novamente em instantes.');
         return;
     }
@@ -358,24 +427,34 @@ async function startChargingWithType() {
 
     let result;
     try {
-        result = await GoodWeAPI.startCharging(state.currentCharger.id, {
-            energy_kwh: Number(totalKwh.toFixed(2)),
-            amount: Number(targetCost.toFixed(2)),
-            charge_type: state.chargeType,
-            target_percent: Math.round(targetPercent),
-        });
+         result = await GoodWeAPI.startCharging(state.currentCharger.id, {
+             energy_kwh: Number(totalKwh.toFixed(2)),
+             amount: Number(targetCost.toFixed(2)),
+             original_amount: Number(state.estimatedCost.toFixed(2)),
+             discount_amount: Number(state.chargeDiscount.toFixed(2)),
+             discount_percentage: pricing.coupon ? pricing.coupon.discount_percentage : 0,
+             coupon_id: state.selectedCouponId,
+             charge_type: state.chargeType,
+             target_percent: Math.round(targetPercent),
+         });
     } catch (err) {
         if (btnConfirm) btnConfirm.disabled = false;
         alert('Não foi possível iniciar a recarga: ' + err.message);
         return;
     }
 
-    state.activeSession = result.session;
+     if (state.selectedCouponId) {
+         Loyalty.setCouponDiscountValue(state.selectedCouponId, state.chargeDiscount);
+         Loyalty.useCoupon(Loyalty.getUserId(), state.selectedCouponId);
+         state.selectedCouponId = null;
+     }
+     state.points = Loyalty.getPoints();
+     state.activeSession = result.session;
     state.chargeStartBalance = result.user.balance + targetCost;
     state.walletBalance = result.user.balance;
     if (state.currentUser) {
         state.currentUser.balance = result.user.balance;
-        state.currentUser.points = result.user.points;
+         state.currentUser.points = state.points;
     }
     state.currentCharger = result.charger;
 
@@ -401,11 +480,11 @@ async function startChargingWithType() {
         state.kwh = Math.min(totalKwh, state.kwh + kwhPerTick);
         state.percent = Math.min(targetPercent, startPercent + percentFromKwh(state.kwh));
 
-        const spent = state.kwh * TARIFF;
-        updateDisplay();
-        updateChargingWallet();
+         const spent = currentChargeCost();
+         updateDisplay();
+         updateChargingWallet();
 
-        if (state.kwh >= totalKwh - 0.0001 || state.percent >= targetPercent - 0.01 || spent >= targetCost - 0.01) {
+         if (state.kwh >= totalKwh - 0.0001 || state.percent >= targetPercent - 0.01 || spent >= targetCost - 0.01) {
             state.kwh = totalKwh;
             state.percent = targetPercent;
             stopCharging();
@@ -413,10 +492,17 @@ async function startChargingWithType() {
     }, 500);
 }
 
+function currentChargeCost() {
+    const total = Number(state.chargeTotalKwh || 0);
+    const progress = total > 0 ? Math.min(1, Number(state.kwh || 0) / total) : 0;
+    const finalCost = Number(state.chargeFinalCost != null ? state.chargeFinalCost : state.estimatedCost || 0);
+    return finalCost * progress;
+}
+
 function updateChargingWallet() {
     const walletEl = document.getElementById('charging-wallet');
     if (walletEl) {
-        const spent = state.kwh * TARIFF;
+        const spent = currentChargeCost();
         const baseline = state.chargeStartBalance != null ? state.chargeStartBalance : state.walletBalance;
         const remaining = baseline - spent;
         walletEl.textContent = brl(Math.max(0, remaining));
@@ -430,13 +516,16 @@ async function stopCharging() {
 
     const session = state.activeSession;
     const actualEnergy = session ? Number(session.energy_kwh) : (state.kwh || 0);
-    const actualCost = session ? Number(session.amount_charged) : (state.kwh || 0) * TARIFF;
+    const actualCost = session ? Number(session.amount_charged) : currentChargeCost();
 
     const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setText('final-time', formatTime(state.seconds));
     setText('final-energy', actualEnergy.toFixed(1) + ' kWh');
     setText('final-cost', brl(actualCost));
     setText('final-estimated', brl(state.estimatedCost || actualCost));
+    setText('final-discount', brl(state.chargeDiscount || 0));
+    const discountRow = document.getElementById('final-discount-row');
+    if (discountRow) discountRow.style.display = state.chargeDiscount > 0 ? 'flex' : 'none';
     setText('final-percent', Math.floor(state.percent) + '%');
     setText('final-tariff', 'Tarifa: ' + brl(TARIFF) + '/kWh');
     setText('final-type', getChargeTypeName(state.chargeType));
@@ -467,9 +556,13 @@ function resetAll() {
     state.chargeValue = null;
     state.chargePercent = null;
     state.chargeMode = null;
-    state.estimatedCost = null;
-    state.targetPercent = null;
-    state.isFullChargeConfirmed = false;
+     state.estimatedCost = null;
+     state.targetPercent = null;
+     state.selectedCouponId = null;
+     state.chargeDiscount = 0;
+     state.chargeFinalCost = null;
+     state.chargeTotalKwh = null;
+     state.isFullChargeConfirmed = false;
     state.batteryCurrent = 30;
     updateDisplay();
     if (GoodWeAPI.isAuthenticated() && typeof refreshWalletFromServer === 'function') {
@@ -493,7 +586,7 @@ function updateDisplay() {
     const energyEl = document.getElementById('energy');
     if (energyEl) energyEl.textContent = (state.kwh || 0).toFixed(1) + ' kWh';
     const costEl = document.getElementById('cost');
-    if (costEl) costEl.textContent = brl((state.kwh || 0) * TARIFF);
+    if (costEl) costEl.textContent = brl(currentChargeCost());
 }
 
 function formatTime(s) {
@@ -507,7 +600,7 @@ function calcEnergy() {
 }
 
 function calcCost() {
-    return brl((state.kwh || 0) * TARIFF);
+    return brl(currentChargeCost());
 }
 
 function getChargeTypeName(type) {
