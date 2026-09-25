@@ -464,7 +464,7 @@ function simulateNFCTap() {
     showNFCTapOverlay();
     setTimeout(async () => {
         hideNFCTapOverlay();
-        state.batteryCurrent = Math.floor(Math.random() * 60) + 20;
+        state.batteryCurrent = 30;
 
         if (GoodWeAPI.isAuthenticated()) {
             try {
