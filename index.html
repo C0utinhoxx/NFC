@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0f1117">
+    <meta name="theme-color" content="#140a10">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GoodWe">
@@ -22,7 +22,28 @@
     <div class="bg-3d" aria-hidden="true">
         <div class="bg-3d-parallax" id="bg-parallax">
             <div class="bg-3d-scene">
-                <div class="bg-grid-plane"></div>
+                <div class="bg-aurora">
+                    <span class="aurora-blob aurora-1"></span>
+                    <span class="aurora-blob aurora-2"></span>
+                    <span class="aurora-blob aurora-3"></span>
+                    <span class="aurora-blob aurora-4"></span>
+                    <span class="aurora-blob aurora-5"></span>
+                </div>
+
+                <div class="bg-beams">
+                    <span class="beam beam-1"></span>
+                    <span class="beam beam-2"></span>
+                    <span class="beam beam-3"></span>
+                </div>
+
+                <div class="bg-sun">
+                    <span class="bg-sun-disc"></span>
+                    <span class="bg-sun-flare"></span>
+                </div>
+
+                <div class="bg-floor">
+                    <div class="bg-grid-plane"></div>
+                </div>
                 <div class="bg-horizon"></div>
 
                 <div class="bg-art">
@@ -41,8 +62,8 @@
                                 <stop offset="100%" stop-color="#1a1d27"/>
                             </linearGradient>
                             <linearGradient id="carBody" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#3b82f6"/>
-                                <stop offset="100%" stop-color="#1d4ed8"/>
+                                <stop offset="0%" stop-color="#6b7280"/>
+                                <stop offset="100%" stop-color="#23262e"/>
                             </linearGradient>
                             <filter id="glowRed" x="-50%" y="-50%" width="200%" height="200%">
                                 <feGaussianBlur stdDeviation="3" result="b"/>
@@ -77,7 +98,7 @@
                         <circle cx="208" cy="236" r="5" fill="#10b981" filter="url(#glowBlue)">
                             <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
                         </circle>
-                        <circle cx="226" cy="236" r="5" fill="#3b82f6"/>
+                        <circle cx="226" cy="236" r="5" fill="#9aa1ad"/>
                         <circle cx="244" cy="236" r="5" fill="#e53935"/>
 
                         <!-- Type 2 socket -->
@@ -111,9 +132,9 @@
                             <ellipse cx="70" cy="110" rx="78" ry="10" fill="rgba(0,0,0,0.35)"/>
                             <!-- body side -->
                             <path d="M10 70 L25 45 Q35 30 55 28 L100 28 Q120 30 135 48 L155 70 L155 88 Q155 98 145 98 L20 98 Q10 98 10 88 Z"
-                                  fill="url(#carBody)" stroke="#60a5fa" stroke-width="1.5"/>
+                                  fill="url(#carBody)" stroke="#9aa1ad" stroke-width="1.5"/>
                             <!-- roof / depth -->
-                            <path d="M40 45 L55 28 L100 28 L115 45 Z" fill="#2563eb" opacity="0.9"/>
+                            <path d="M40 45 L55 28 L100 28 L115 45 Z" fill="#3f444f" opacity="0.9"/>
                             <!-- windows -->
                             <path d="M48 45 L60 33 L85 33 L85 45 Z" fill="#0f172a" opacity="0.85"/>
                             <path d="M90 33 L108 33 L118 45 L90 45 Z" fill="#0f172a" opacity="0.7"/>
@@ -135,7 +156,7 @@
                             <polygon points="130 160 118 188 130 188 126 214 146 180 134 180" fill="#e53935">
                                 <animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite"/>
                             </polygon>
-                            <polygon points="300 140 290 164 300 164 296 186 314 156 304 156" fill="#3b82f6" filter="url(#glowBlue)">
+                            <polygon points="300 140 290 164 300 164 296 186 314 156 304 156" fill="#cbd0d8" filter="url(#glowBlue)">
                                 <animate attributeName="opacity" values="1;0.35;1" dur="1.8s" repeatCount="indefinite"/>
                             </polygon>
                             <polygon points="90 300 80 324 90 324 86 346 104 316 94 316" fill="#10b981">
@@ -156,6 +177,8 @@
                 <div class="bg-orb bg-orb-1"></div>
                 <div class="bg-orb bg-orb-2"></div>
                 <div class="bg-orb bg-orb-3"></div>
+
+                <div class="bg-embers" id="bg-embers"></div>
 
                 <div class="bg-tagline">
                     <span class="bg-tagline-kicker">GoodWe · Estações de Recarga</span>
@@ -681,14 +704,14 @@
                      <span class="receipt-label">Pagamento</span>
                      <span class="receipt-value" id="final-payment-method">Carteira</span>
                  </div>
-                 <div class="receipt-row" id="final-points-row" style="display:none;">
-                     <span class="receipt-label">Pontos ganhos</span>
-                     <span class="receipt-value" id="final-points">+0,00</span>
-                 </div>
-                 <div class="receipt-row">
-                     <span class="receipt-label">Tarifa</span>
-                     <span class="receipt-value" id="final-tariff">Tarifa: R$ 1,90/kWh</span>
-                 </div>
+                  <div class="receipt-row" id="final-points-row" style="display:none;">
+                      <span class="receipt-label">Pontos ganhos</span>
+                      <span class="receipt-value" id="final-points">+0,00</span>
+                  </div>
+                  <div class="receipt-row">
+                      <span class="receipt-label">Tarifa</span>
+                      <span class="receipt-value" id="final-tariff">Tarifa: R$ 1,90/kWh</span>
+                  </div>
                 <div class="receipt-row">
                     <span class="receipt-label">Saldo Restante</span>
                     <span class="receipt-value" id="final-wallet" style="color: var(--success);">R$ 100.00</span>

@@ -490,6 +490,29 @@ function simulateNFCTap() {
     }, 2000);
 }
 
+function initBgEmbers() {
+    const layer = document.getElementById('bg-embers');
+    if (!layer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const count = window.innerWidth < 700 ? 18 : 34;
+    const frag = document.createDocumentFragment();
+
+    for (let i = 0; i < count; i++) {
+        const ember = document.createElement('span');
+        ember.className = 'ember';
+        const size = (Math.random() * 4 + 2).toFixed(1);
+        ember.style.left = (Math.random() * 100).toFixed(2) + '%';
+        ember.style.setProperty('--size', size + 'px');
+        ember.style.setProperty('--dur', (Math.random() * 14 + 10).toFixed(1) + 's');
+        ember.style.setProperty('--delay', (-Math.random() * 22).toFixed(1) + 's');
+        ember.style.setProperty('--sway', (Math.random() * 70 - 35).toFixed(0) + 'px');
+        ember.style.setProperty('--peak', (Math.random() * 0.5 + 0.4).toFixed(2));
+        frag.appendChild(ember);
+    }
+
+    layer.appendChild(frag);
+}
+
 function initBgParallax() {
     const layer = document.getElementById('bg-parallax');
     if (!layer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -537,6 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof initMap === 'function') initMap();
     if (typeof initNFCListener === 'function') initNFCListener();
     initBgParallax();
+    initBgEmbers();
     updateWalletDisplay();
     loadKioskCharger();
     setInterval(loadKioskCharger, 15000);
