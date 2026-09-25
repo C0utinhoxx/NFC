@@ -539,6 +539,8 @@ body::after {
     animation: glow-pulse 3s ease-in-out infinite alternate;
     width: 100%;
     max-width: 320px;
+    min-height: 58px;
+    font-size: 15px;
 }
 
 .nfc-tap-btn:hover {
@@ -558,7 +560,15 @@ body::after {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
     margin-bottom: 16px;
+}
+
+.btn-charge-center .btn-primary {
+    width: 100%;
+    max-width: none;
+    min-height: 60px;
+    font-size: 16px;
 }
 
 .btn-primary, .btn-liberar {
@@ -2412,6 +2422,15 @@ body::after {
         max-width: none;
     }
 
+    .charger-card-wrapper {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .charger-card {
+        padding: 16px;
+    }
+
     .ready-content,
     .type-content,
     .charging-content,
@@ -2434,6 +2453,23 @@ body::after {
 
     .charger-card-wrapper {
         flex: 0 0 auto;
+    }
+
+    .btn-primary,
+    .btn-liberar,
+    .btn-outline,
+    .nfc-tap-btn {
+        width: 100%;
+        max-width: none;
+        min-height: 58px;
+        font-size: 16px;
+    }
+
+    #btn-confirm-type {
+        width: 100%;
+        max-width: none;
+        min-height: 58px;
+        font-size: 16px;
     }
 }
 
