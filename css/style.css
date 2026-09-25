@@ -8,18 +8,23 @@
 
 :root {
     --bg: #0d0709;
-    --bg-card: #14161e;
-    --bg-input: #1a1d27;
-    --border: #2a2d3a;
-    --text: #EDEDEC;
-    --text-secondary: #a0a0a0;
-    --text-muted: #8a8f98;
+    --bg-card: #17181f;
+    --bg-card-2: #1e2029;
+    --bg-input: #21212a;
+    --border: #38343c;
+    --border-soft: #2b2830;
+    --surface-glass: rgba(23, 24, 31, 0.86);
+    --text: #F3F1F0;
+    --text-secondary: #b8b3b2;
+    --text-muted: #918c8b;
     --primary: #e53935;
     --primary-hover: #c62828;
     --primary-glow: rgba(229, 57, 53, 0.4);
     --success: #10b981;
     --success-glow: rgba(16, 185, 129, 0.3);
-    --energy-blue: #3b82f6;
+    --accent: #f5a524;
+    --accent-soft: rgba(245, 165, 36, 0.14);
+    --energy-blue: #f5a524;
     --font: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -231,6 +236,23 @@ body::after {
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+/* mapa com duotone vermelho para combinar com o tema */
+.leaflet-tile-pane {
+    filter: brightness(0.72) saturate(0.75) contrast(1.06) sepia(0.32) hue-rotate(-10deg);
+}
+
+.map-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 400;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 70% 60% at 50% 50%, transparent 40%, rgba(20, 6, 10, 0.62) 100%),
+        linear-gradient(180deg, rgba(70, 14, 18, 0.32), transparent 40%);
 }
 
 .map-loading {
@@ -320,10 +342,10 @@ body::after {
 }
 
 .user-marker {
-    background: #3b82f6;
+    background: var(--accent);
     border: 3px solid white;
     border-radius: 50%;
-    box-shadow: 0 2px 12px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 12px rgba(245, 165, 36, 0.4);
     display: inline-block;
     width: 20px;
     height: 20px;
@@ -643,7 +665,9 @@ body::after {
     width: 100%;
     max-width: 320px;
     padding: 14px 28px;
-    background: transparent;
+    background: var(--surface-glass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -661,8 +685,8 @@ body::after {
 
 .btn-outline:hover {
     border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(229, 57, 53, 0.05);
+    color: #ff8b7a;
+    background: rgba(40, 22, 24, 0.92);
 }
 
 .btn-outline:active {
@@ -750,7 +774,7 @@ body::after {
     justify-content: center;
     align-items: center;
     padding: 24px;
-    background: radial-gradient(ellipse at center, rgba(229, 57, 53, 0.03) 0%, transparent 70%);
+    background: radial-gradient(ellipse 62% 52% at 50% 48%, rgba(11, 6, 9, 0.88) 0%, rgba(11, 6, 9, 0.66) 45%, rgba(11, 6, 9, 0.2) 78%, transparent 100%);
 }
 
 .auth-card {
@@ -886,7 +910,7 @@ body::after {
 
 .ready-screen {
     padding: 24px;
-    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
+    background: radial-gradient(ellipse 58% 62% at 50% 50%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.7) 45%, rgba(11, 6, 9, 0.22) 78%, transparent 100%);
 }
 
 .ready-content {
@@ -1027,7 +1051,7 @@ body::after {
 
 .type-screen {
     padding: 24px;
-    background: radial-gradient(ellipse at center, rgba(229, 57, 53, 0.03) 0%, transparent 70%);
+    background: radial-gradient(ellipse 58% 62% at 50% 50%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.7) 45%, rgba(11, 6, 9, 0.22) 78%, transparent 100%);
 }
 
 .type-content {
@@ -1216,7 +1240,7 @@ body::after {
 
 .screen-charging {
     padding: 24px;
-    background: radial-gradient(ellipse at center, rgba(229, 57, 53, 0.04) 0%, transparent 70%);
+    background: radial-gradient(ellipse 55% 65% at 50% 48%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.7) 45%, rgba(11, 6, 9, 0.2) 80%, transparent 100%);
 }
 
 .charging-content {
@@ -1310,11 +1334,11 @@ body::after {
 .progress-bar-track {
     width: 100%;
     height: 10px;
-    background: var(--border);
+    background: #14121a;
     border-radius: 999px;
     overflow: hidden;
     margin-bottom: 20px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .progress-bar-fill {
@@ -1405,7 +1429,9 @@ body::after {
     align-self: center;
     max-width: 340px;
     padding: 16px 32px;
-    background: transparent;
+    background: var(--surface-glass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     color: var(--text);
     border: 2px solid var(--border);
     border-radius: 14px;
@@ -1430,8 +1456,8 @@ body::after {
 
 .btn-liberar:hover {
     border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(229, 57, 53, 0.05);
+    color: #ff8b7a;
+    background: rgba(40, 22, 24, 0.92);
     box-shadow: 0 0 20px rgba(229, 57, 53, 0.1);
     transform: translateY(-2px);
 }
@@ -1450,7 +1476,7 @@ body::after {
     justify-content: center;
     text-align: center;
     gap: 8px;
-    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
+    background: radial-gradient(ellipse 55% 62% at 50% 50%, rgba(11, 6, 9, 0.88) 0%, rgba(11, 6, 9, 0.66) 45%, rgba(11, 6, 9, 0.2) 80%, transparent 100%);
 }
 
 .done-icon {
@@ -1905,6 +1931,47 @@ body::after {
     display: block;
 }
 
+/* --- Halo e anéis de carga (pulsos de energia no chão) --- */
+.bg-charge-halo {
+    position: absolute;
+    right: max(2%, calc(50% - 520px));
+    bottom: 6%;
+    width: min(42vw, 340px);
+    height: min(42vw, 340px);
+    transform: translate(50%, 50%) translateZ(-30px);
+    background: radial-gradient(circle, rgba(255, 110, 70, 0.22) 0%, rgba(229, 57, 53, 0.1) 40%, transparent 70%);
+    filter: blur(10px);
+    animation: halo-pulse 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes halo-pulse {
+    0%, 100% { opacity: 0.55; transform: translate(50%, 50%) translateZ(-30px) scale(0.92); }
+    50% { opacity: 1; transform: translate(50%, 50%) translateZ(-30px) scale(1.12); }
+}
+
+.bg-charge-ring {
+    position: absolute;
+    right: max(2%, calc(50% - 520px));
+    bottom: 6%;
+    width: min(42vw, 340px);
+    height: min(42vw, 340px);
+    border: 2px solid rgba(255, 122, 69, 0.55);
+    border-radius: 50%;
+    transform: translate(50%, 50%) translateZ(-20px);
+    pointer-events: none;
+    animation: charge-ring 4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+
+.bg-charge-ring-2 { animation-delay: 1.3s; }
+.bg-charge-ring-3 { animation-delay: 2.6s; }
+
+@keyframes charge-ring {
+    0% { transform: translate(50%, 50%) translateZ(-20px) scale(0.35); opacity: 0; }
+    15% { opacity: 0.85; }
+    100% { transform: translate(50%, 50%) translateZ(-20px) scale(1.6); opacity: 0; }
+}
+
 @keyframes art-float {
     0% { transform: translateZ(60px) rotateY(-8deg) translateY(0); }
     100% { transform: translateZ(80px) rotateY(-4deg) translateY(-18px); }
@@ -1918,6 +1985,14 @@ body::after {
     transform: translateZ(30px);
     text-align: left;
     opacity: 0.7;
+    display: none;
+}
+
+@media (min-width: 1181px) {
+    body:has(#screen-charger.active) .bg-tagline,
+    body:has(#screen-auth.active) .bg-tagline {
+        display: block;
+    }
 }
 
 .bg-tagline-kicker {
@@ -1949,10 +2024,6 @@ body::after {
     color: #d8c9c9;
     line-height: 1.5;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
-}
-
-@media (max-width: 1180px) {
-    .bg-tagline { display: none; }
 }
 
 .bg-ring {
@@ -2048,6 +2119,13 @@ body::after {
         right: -4%;
         bottom: 12%;
     }
+    .bg-charge-halo,
+    .bg-charge-ring {
+        right: -4%;
+        bottom: 12%;
+        width: min(55vw, 260px);
+        height: min(55vw, 260px);
+    }
     .bg-tagline {
         left: 5%;
         bottom: 14%;
@@ -2060,6 +2138,8 @@ body::after {
 @media (max-width: 560px) {
     .bg-tagline h2 { font-size: 22px; }
     .bg-art { opacity: 0.22; width: 180px; }
+    .bg-charge-halo { opacity: 0.5; }
+    .bg-charge-ring { opacity: 0.6; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2256,7 +2336,7 @@ body::after {
 
 .wallet-screen {
     padding: 0 20px 24px;
-    background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
+    background: radial-gradient(ellipse 60% 70% at 50% 45%, rgba(11, 6, 9, 0.9) 0%, rgba(11, 6, 9, 0.74) 45%, rgba(11, 6, 9, 0.28) 80%, transparent 100%);
 }
 
 .wallet-screen-header {
@@ -2316,7 +2396,7 @@ body::after {
 }
 
 .wallet-summary-card.points {
-    border-color: rgba(59, 130, 246, 0.35);
+    border-color: rgba(245, 165, 36, 0.35);
 }
 
 .wallet-summary-label,
@@ -2339,7 +2419,7 @@ body::after {
 }
 
 .wallet-summary-card.points .wallet-summary-value {
-    color: #60a5fa;
+    color: var(--accent);
 }
 
 .wallet-summary-caption {
@@ -2371,9 +2451,9 @@ body::after {
 
 .wallet-rate-badge {
     flex-shrink: 0;
-    color: #60a5fa;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.25);
+    color: var(--accent);
+    background: rgba(245, 165, 36, 0.1);
+    border: 1px solid rgba(245, 165, 36, 0.25);
     border-radius: 999px;
     padding: 5px 9px;
     font-size: 11px;
@@ -2464,7 +2544,7 @@ body::after {
 .benefit-action,
 .coupon-status {
     flex-shrink: 0;
-    color: #60a5fa;
+    color: var(--accent);
     font-size: 12px;
     font-weight: 700;
     text-align: right;
@@ -2498,7 +2578,7 @@ body::after {
 }
 
 .point-history-points.redeemed {
-    color: #60a5fa;
+    color: var(--accent);
 }
 
 .manager-summary-card {
@@ -2541,8 +2621,8 @@ body::after {
 .coupon-selector {
     margin-top: 14px;
     padding: 14px;
-    background: rgba(59, 130, 246, 0.06);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: rgba(245, 165, 36, 0.06);
+    border: 1px solid rgba(245, 165, 36, 0.2);
     border-radius: 12px;
     text-align: left;
 }
@@ -2576,9 +2656,9 @@ body::after {
 }
 
 .coupon-option.selected {
-    border-color: #60a5fa;
+    border-color: var(--accent);
     color: var(--text);
-    background: rgba(59, 130, 246, 0.12);
+    background: rgba(245, 165, 36, 0.12);
 }
 
 .coupon-pricing {
@@ -2595,7 +2675,7 @@ body::after {
 }
 
 .coupon-pricing .final-value {
-    color: #60a5fa;
+    color: var(--accent);
 }
 
 .payment-method-options {
@@ -2628,8 +2708,8 @@ body::after {
 }
 
 .payment-method-option.selected {
-    border-color: #60a5fa;
-    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--accent);
+    background: rgba(245, 165, 36, 0.15);
     color: var(--text);
 }
 
@@ -2638,7 +2718,7 @@ body::after {
     max-width: 560px;
     margin: 16px auto 0;
     border-radius: 16px;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    border: 1px solid rgba(245, 165, 36, 0.3);
     background: linear-gradient(145deg, #171b27, #14161e);
     padding: 16px;
     display: grid;
