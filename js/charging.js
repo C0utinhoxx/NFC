@@ -593,9 +593,25 @@ async function payChargeSession() {
         }
 
         const result = await GoodWeAPI.payCharge(state.activeSession.id, { payment_method: paymentMethod });
+        const previousPoints = Number(state.points || 0);
+        const nextPoints = Number(result.user.points != null ? result.user.points : previousPoints);
+        const earnedPoints = Number((nextPoints - previousPoints).toFixed(2));
+        const sessionId = state.activeSession.id;
+        const chargedAmount = Number(result.session.amount_charged || state.chargeFinalCost || 0);
+
         state.walletBalance = Number(result.user.balance || state.walletBalance);
         if (result.user.points != null) {
-            state.points = Number(result.user.points || 0);
+            if (earnedPoints > 0 && window.Loyalty) {
+                Loyalty.addPointTransaction(
+                    Loyalty.getUserId(),
+                    earnedPoints,
+                    'earned',
+                    'Cashback de 10% da recarga - GoodWe',
+                    'charge_' + sessionId,
+                    chargedAmount
+                );
+            }
+            state.points = nextPoints;
             if (state.currentUser) state.currentUser.points = state.points;
             if (window.Loyalty && state.currentUser) {
                 Loyalty.setPoints(state.currentUser.id, state.points);
@@ -610,6 +626,13 @@ async function payChargeSession() {
         if (paymentEl) paymentEl.textContent = paymentMethodLabel(result.session.payment_method || paymentMethod);
         const walletEl = document.getElementById('final-wallet');
         if (walletEl) walletEl.textContent = brl(state.walletBalance);
+
+        const pointsRow = document.getElementById('final-points-row');
+        const pointsEl = document.getElementById('final-points');
+        if (pointsRow && pointsEl) {
+            pointsRow.style.display = earnedPoints > 0 ? 'flex' : 'none';
+            pointsEl.textContent = '+' + formatPoints(earnedPoints);
+        }
 
         if (panelMessage) {
             panelMessage.className = 'wallet-message';
