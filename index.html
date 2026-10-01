@@ -9,7 +9,11 @@
     <meta name="apple-mobile-web-app-title" content="GoodWe">
     <meta name="description" content="GoodWe - Carregamento de Veículos Elétricos">
     <title>GoodWe - Carregador</title>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR29vZFdlIiwic2hvcnRfbmFtZSI6Ikdvb2RXZSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxMTE3IiwidGhlbWVfY29sb3IiOiIjMGYxMTE3IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyNlNTM5MzUnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIGZpbGw9J3doaXRlJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb25tLWZhbWlseT0nc2Fucy1zZXJpZic+4peRIC8+dGV4dD48L3N2Zz4iLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <!-- PWA: manifest real (o Chrome ignora manifest em data: URI) -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -816,5 +820,6 @@
     <script src="js/map.js"></script>
     <script src="js/charging.js"></script>
     <script src="js/nfc.js"></script>
+    <script src="js/pwa.js"></script>
 </body>
 </html>
